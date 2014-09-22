@@ -1,0 +1,63 @@
+<div id="compDetails" class="overlay active scroll" ng-escape="goBack()">
+  <div class="content">
+    <span class="exit close-overlay" title="Cancel" ng-click="goBack()">
+      <i class="fa fa-times fa-5x"></i>
+    </span>
+    <div class="row">
+      <div class="small-8 columns small-centered">
+
+		  <h3 class="info-title">
+        {{appCache.currentItem.name}}
+      </h3>
+      <h4 class="subheader info-description">
+        {{appCache.currentItem.description}}
+      </h4>
+      <p>
+        <strong>ID:</strong> 
+        <span class="info-id-entry">{{appCache.currentItem.id}}</span>
+      </p>
+      <hr>
+      <p>
+        <strong>Default Levels:</strong> 
+        <br/>
+        <span ng-repeat="(i,levelObj) in appCache.currentItem.levels" title="[{{levelObj.id}}] (Rank {{levelObj.rank}})">
+          {{levelObj.name}} - {{levelObj.description}}
+          <br/>
+        </span>
+
+      </p>
+
+      <hr ng-hide="appCache.currentItem.sourceInfo == undefined">
+      <p ng-hide="appCache.currentItem.sourceInfo == undefined">
+        <strong>External Source:</strong> 
+        <br/>
+        <span class="info-source-description">
+          {{appCache.currentItem.sourceInfo}}
+        </span> 
+        (
+        <span class="info-source-structure">
+          {{appCache.currentModel.id}}
+        </span>
+        )
+        <br/>
+        <span class="info-source-id-url">
+          {{appCache.currentModel.uri}}
+        </span>
+      </p>
+
+      <hr>
+
+	    <button class="secondary small" ng-click="showEdit(appCache.context, appCache.currentItemId, appCache.currentModelId)" ng-hide="appCache.currentItemId == 'model-default'">
+  			<i class="fa fa-pencil"></i> 
+  			Edit
+  		</button>	
+
+      <!--button class="secondary small" ng-click="">
+        <i class="fa fa-sitemap"></i> 
+        View Competencies
+      </button-->  
+
+	   </div>
+    </div>
+  </div>
+</div>
