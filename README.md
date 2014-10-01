@@ -9,4 +9,4 @@ competency-ui is a web site project that allows CRUD interaction with competency
 
 competency-ui is Open Source under the Apache 2.0 license, the details of which can be found in license.txt.
 
-competency is under active development. It is currently missing functionality, but performs basic core functionality.
+competency-ui is under active development. It is currently missing functionality, but performs basic core functionality.
