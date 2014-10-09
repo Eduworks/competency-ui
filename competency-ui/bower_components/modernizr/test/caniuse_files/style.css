@@ -6,6 +6,7 @@ body {
 a {
 	text-decoration: none;
 }
+
 a:hover {
 	text-decoration: underline;
 }
@@ -38,8 +39,9 @@ dt {
 	font-weight: bold;
 }
 
-tr:hover > th,
-tr:hover > td + td { background-color: #FFC; }
+tr:hover>th, tr:hover>td+td {
+	background-color: #FFC;
+}
 
 div.test_wrap {
 	display: -moz-inline-stack;
@@ -89,10 +91,9 @@ div.info {
 	text-align: left;
 }
 
-div.test_wrap:hover > div.info {
+div.test_wrap:hover>div.info {
 	display: block;
 }
-
 
 div.vis_test {
 	display: -moz-inline-stack;
@@ -115,29 +116,29 @@ p.condition {
 }
 
 .pass {
-  background: lime;
+	background: lime;
 }
 
 .fail {
-  background: red;
+	background: red;
 }
 
 .partial {
-  background: yellow;
+	background: yellow;
 }
 
 .unknown {
-  background: #aaa;
+	background: #aaa;
 }
 
 .current span {
-    border-radius: 6px;
-    -moz-border-radius: 6px;
-    background: none repeat scroll 0 0 #E6EA69;
-    color: black;
-    float: right;
-    font-size: 8px;
-    padding: 0 1px;
+	border-radius: 6px;
+	-moz-border-radius: 6px;
+	background: none repeat scroll 0 0 #E6EA69;
+	color: black;
+	float: right;
+	font-size: 8px;
+	padding: 0 1px;
 }
 
 #intro, #options {

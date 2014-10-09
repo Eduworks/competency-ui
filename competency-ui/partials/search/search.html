@@ -1,39 +1,45 @@
 <div id="search-model" class="overlay active">
-    <div class="content">
-        <div class="row">
-            <div class="content small-8 columns small-centered">
-                <span class="exit close-overlay" title="Cancel" ng-click="goBack()">
-                    <i class="fa fa-times fa-5x"></i>
-                </span>
-                <h4 style="color:white;">
-                    Find an existing {{appCache.context}}
-                </h4>
-                <div class="row">
-                    <div class="small-10 large-11 columns" style="padding-right:0px">
-                        <input type="text" placeholder="Search" ng-model="search.query" ng-enter="search.runSearch(appCache.context)" ng-escape="goBack()">
-                    </div>
-                    <div class="small-2 large-1 columns" style="padding:0px;">
-                        <a class="button postfix secondary" ng-click="search.runSearch(appCache.context)">
-                            <i class="fa fa-search"></i>
-                        </a>
-                    </div>
-                </div>
-                <div id="upload" style="">
-                    <h4 style="color:white;">
-                        Add a new {{appCache.context}}
-                    </h4>
-                    
-                    <a class="button small secondary" ng-hide="appCache.context != 'model'">
-                        <i class="fa fa-download"></i> 
-                        Import
-                    </a>
-                    <a class="button small secondary" ng-click="showCreate(appCache.context);">
-                        <i class="fa fa-plus"></i> 
-                        Create
-                    </a>
-                </div>
-                
-            </div>
-        </div>
-    </div>
+	<div class="content">
+		<div class="row">
+			<div class="content small-8 columns small-centered">
+				<span class="exit close-overlay" title="Cancel" ng-click="goBack()">
+					<i class="fa fa-times fa-5x"></i>
+				</span>
+				<h4 style="color: white;">Find an existing {{appCache.context}}
+				</h4>
+				<div class="row">
+					<div class="small-10 large-11 columns" style="padding-right: 0px">
+						<input type="text" placeholder="Search" ng-model="search.query"
+							ng-enter="search.runSearch(appCache.context)"
+							ng-escape="goBack()">
+					</div>
+					<div class="small-2 large-1 columns" style="padding: 0px;">
+						<a class="button postfix secondary"
+							ng-click="search.runSearch(appCache.context)"> <i
+							class="fa fa-search"></i>
+						</a>
+					</div>
+				</div>
+				<div id="upload" style="">
+					<h4 style="color: white;">Add a new {{appCache.context}}</h4>
+
+					<a class="button small secondary"
+						ng-hide="appCache.context != 'model' || true"> <i
+						class="fa fa-download"></i> Import
+					</a>
+					<a class="button small secondary"
+						ng-click="search.viewAllModels()"
+						ng-hide="appCache.context != 'model' "> <i
+						class="fa fa-list" 
+						></i> View All
+					</a> 
+					<a class="button small secondary"
+						ng-click="showCreate(appCache.context);"> <i
+						class="fa fa-plus"></i> Create
+					</a>
+				</div>
+
+			</div>
+		</div>
+	</div>
 </div>

@@ -1,43 +1,39 @@
-<span>
-  <strong>Competency:</strong>
-  <a ng-click="showView('competency', recordObj.competencyId, recordObj.competencyModelId)" title="{{appCache.currentItem.competencies[recordObj.competencyId].id}}">
-    {{appCache.competencyCache[recordObj.competencyModelId][recordObj.competencyId].title}}
-  </a>
+<span> <strong>Competency:</strong> <a
+	ng-click="showView('competency', recordObj.competencyId, recordObj.competencyModelId)"
+	title="{{appCache.currentItem.competencies[recordObj.competencyId].id}}">
+		{{appCache.competencyCache[recordObj.competencyModelId][recordObj.competencyId].title}}
+</a>
 </span>
 
 
-<a style='float:right; margin-bottom: 0px;' ng-click="showEdit('record', recordObj.id, recordObj.userId)">
-  <i class="fa fa-pencil"></i>
-  View / Edit Validations
+<a style='float: right; margin-bottom: 0px;'
+	ng-click="showEdit('record', recordObj.id, recordObj.userId)"> <i
+	class="fa fa-pencil"></i> View / Edit Validations
 </a>
 
-<br/>
+<br />
 
-<span>
-  <strong>Model:</strong>
-  <a ng-click="showView('model', recordObj.competencyModelId)" title="{{appCache.currentItem.competencies[recordObj.competencyId].modelId">
-    {{appCache.modelCache[recordObj.competencyModelId].name}}
-  </a>
+<span> <strong>Model:</strong> <a
+	ng-click="showView('model', recordObj.competencyModelId)"
+	title="{{appCache.currentItem.competencies[recordObj.competencyId].modelId">
+		{{appCache.modelCache[recordObj.competencyModelId].name}} </a>
 </span>
 
-<br/>
+<br />
 
 
-<span >
-  <strong>Level:</strong>
-  <span title="{{appCache.levelCache[recordObj.levelId] ? appCache.levelCache[recordObj.levelId].description : appCache.levelCache[recordObj.competencyModelId][recordObj.levelId].description; }}">
-    {{appCache.levelCache[recordObj.levelId] ? appCache.levelCache[recordObj.levelId].name : appCache.levelCache[recordObj.competencyModelId][recordObj.levelId].name; }}
-  </span>
+<span> <strong>Level:</strong> <span
+	title="{{appCache.levelCache[recordObj.levelId] ? appCache.levelCache[recordObj.levelId].description : appCache.levelCache[recordObj.competencyModelId][recordObj.levelId].description; }}">
+		{{appCache.levelCache[recordObj.levelId] ?
+		appCache.levelCache[recordObj.levelId].name :
+		appCache.levelCache[recordObj.competencyModelId][recordObj.levelId].name;
+		}} </span>
 </span>
 
-<span style="float:right;">
-  <strong>Validations:</strong>
-  <a>{{recordObj.validationIds.length}}</a>
+<span style="float: right;"> <strong>Validations:</strong> <a>{{recordObj.validationIds.length}}</a>
 </span>
 
-<br/>
+<br />
 
-<span >
-  <strong>Confidence:</strong>
-  {{recordObj.confidence}}
+<span> <strong>Confidence:</strong> {{recordObj.confidence}}
 </span>

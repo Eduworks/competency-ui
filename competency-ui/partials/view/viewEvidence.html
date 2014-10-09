@@ -1,46 +1,35 @@
-<div style="margine-top:10px;" ng-hide="validObj.evidences[evidenceId] != undefined" class="row">
-	<div class="small-12 columns" style='font-size:15pt;'>
-		<i class="fa fa-circle-o-notch fa-spin"></i> 
-		Loading
+<div style="margine-top: 10px;"
+	ng-hide="validObj.evidences[evidenceId] != undefined" class="row">
+	<div class="small-12 columns" style='font-size: 15pt;'>
+		<i class="fa fa-circle-o-notch fa-spin"></i> Loading
 	</div>
 </div>
-<div style='margin-top: 10px;'  ng-hide="validObj.evidences[evidenceId] == undefined" class="row">
-  <div class="small-12 columns">
-    <div class="row"> 
-      <span class="small-6 columns">
-        <strong>Evidence Type:</strong>
-        {{validObj.evidences[evidenceId].type}}
-      </span>
+<div style='margin-top: 10px;'
+	ng-hide="validObj.evidences[evidenceId] == undefined" class="row">
+	<div class="small-12 columns">
+		<div class="row">
+			<span class="small-6 columns"> <strong>Evidence Type:</strong>
+				{{validObj.evidences[evidenceId].type}}
+			</span> <span class="small-4 columns"> <strong>Date:</strong>
+				{{validObj.evidences[evidenceId].date | date}}
 
-      <span class="small-4 columns">
-        <strong>Date:</strong>
-        {{validObj.evidences[evidenceId].date | date}}
-        
-      </span>
-    </div>
+			</span>
+		</div>
 
-    <div class="row">
-      <span class="small-6 columns">
-        <strong>Evidence Description</strong>
-        {{validObj.evidences[evidenceId].description}}
-      </span>
-      <span class="small-4 columns">
-        <strong>Evidence Result</strong>
-        {{validObj.evidences[evidenceId].result}}
-      </span>
-    </div>
+		<div class="row">
+			<span class="small-6 columns"> <strong>Evidence
+					Description</strong> {{validObj.evidences[evidenceId].description}}
+			</span> <span class="small-4 columns"> <strong>Evidence
+					Result</strong> {{validObj.evidences[evidenceId].result}}
+			</span>
+		</div>
 
-    <div class="row">
-      <span class="small-6 columns">
-        <strong>Resource Type:</strong>
-        {{validObj.evidences[evidenceId].valueType}}
-      </span>
-
-      <span class="small-4 columns">
-        <strong>Resource:</strong>
-        <span>{{validObj.evidences[evidenceId].value}}</span>
-        <span>{{validObj.evidences[evidenceId].file}}</span>
-      </span>
-    </div>
-  </div>
+		<div class="row">
+			<span class="small-6 columns"> <strong>Resource Type:</strong>
+				{{validObj.evidences[evidenceId].valueType}}
+			</span> <span class="small-4 columns"> <strong>Resource:</strong> <span>{{validObj.evidences[evidenceId].value}}</span>
+				<span>{{validObj.evidences[evidenceId].file}}</span>
+			</span>
+		</div>
+	</div>
 </div>

@@ -1,28 +1,28 @@
 <div id="login" class="overlay active">
-    <div class="content">
-        <div class="row">
-            <div class="content medium-6 columns medium-centered">
-                <h1 style="color:white;">
-                	Competency Management Tool
-                </h1>
-                
-                <div data-alert class="alert-box alert" class="hide">
-                    Incorrect username or password. Please try again.
-                    <a href="#" class="close">&times;</a>
-                </div>
-                
-                <form data-abide>
-                    <div class="name-field">
-                        <input type="text" ng-model="appCache.currentUser.id" required placeholder="Username">
-                        <small class="error">Did you forget something here?</small>
-                    </div>
-                    <div class="password-field">
-                        <input type="password" ng-model="password" required placeholder="Password" >
-                        <small class="error">What's the secret code?</small>
-                    </div>
-                    <button type="submit" class="secondary" ng-click="login()">Login</button>
-                </form>
-            </div>
-        </div>
-    </div>
+	<div class="content">
+		<div class="row">
+			<div class="content medium-6 columns medium-centered">
+				<h1 style="color: white;">Competency Management Tool</h1>
+
+				<div data-alert class="alert-box alert" ng-class="{'hide':loginMessage.message == ''}">
+					{{loginMessage.message}}
+					<span ng-click="clearMessage()" class="close">&times;</span>
+				</div>
+
+				<form data-abide>
+					<div class="name-field">
+						<input type="text" ng-model="userId" required
+							placeholder="Username"> <small class="error">Did
+							you forget something here?</small>
+					</div>
+					<div class="password-field">
+						<input type="password" ng-model="password" required
+							placeholder="Password"> <small class="error">What's
+							the secret code?</small>
+					</div>
+					<button type="submit" class="secondary" ng-click="login()">Login</button>
+				</form>
+			</div>
+		</div>
+	</div>
 </div>

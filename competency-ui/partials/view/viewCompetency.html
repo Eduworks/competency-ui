@@ -1,76 +1,67 @@
 <div id="compDetails" class="overlay active scroll" ng-escape="goBack()">
-  <div class="content">
-    <span class="exit close-overlay" title="Cancel" ng-click="goBack()">
-      <i class="fa fa-times fa-5x"></i>
-    </span>
-    <div class="row">
-      <div class="small-8 columns small-centered">
-          <h3 class="info-title">
-            {{appCache.currentItem.title}}
-          </h3>
-          <p class="info-description" style='margin-bottom: 0px;' ng-repeat="description in appCache.currentItem.descriptions">
-            {{description.text}}
-          </p>
-          <p>
-            <strong>ID:</strong> 
-            <span class="info-id-entry">{{appCache.currentItem.id}}</span>
-          </p>
-          <hr>
-          <p title="{{appCache.currentModel.id}}">
-            <strong>Model:</strong> 
-            <br/>
-            <a ng-click="showView('model', appCache.currentItem.modelId)" class="info-source-description" ng-bind="appCache.currentModel.name">
-              
-            </a>
-            <br/>
-            <span class="info-source-url" ng-bind="appCache.currentModel.uri">
-              
-            </span>
-          </p>
-          <hr>
-          <p>
-            <strong>Levels:</strong> 
-            <br/>
-            <span ng-repeat="id in appCache.currentItem.levelIds" title="[{{appCache.levelCache[id].id}}] (Rank {{appCache.levelCache[id].rank}})">
-              <span ng-bind="appCache.levelCache[id].name + ' - ' + appCache.levelCache[id].description"></span>
-              <br/>
-            </span>
-          </p>
-          <hr>
-          <p class="relationships">
-            <strong>Relationships:</strong> 
-            <br/>
-            <span ng-hide="objectLength(appCache.currentItem.relationships) != 0">
-              This Competency has no Relationships yet!
-            </span>
-            <span ng-repeat="(relationshipType, relationships) in appCache.currentItem.relationships">
-              <span class="info-property-item-name" >
-                {{relationshipType}}: 
-              </span>
-              <span class="data-property-values">
-                <span data-object-id="12345" ng-repeat="relatedId in relationships">
-                  <a ng-click="showView(appCache.context, relatedId, relatedCompetencies[relatedId].modelId)" title="{{relatedCompetencies[relatedId].modelId + '\n' + relatedCompetencies[relatedId].id}}">
-                    {{relatedCompetencies[relatedId].title}}
-                  </a>
-                </span>
-              </span>
-              <br/>
-            </span>
+	<div class="content">
+		<span class="exit close-overlay" title="Cancel" ng-click="goBack()">
+			<i class="fa fa-times fa-5x"></i>
+		</span>
+		<div class="row">
+			<div class="small-8 columns small-centered">
+				<h3 class="info-title">{{appCache.currentItem.title}}</h3>
+				<p class="info-description" style='margin-bottom: 0px;'
+					ng-repeat="description in appCache.currentItem.descriptions">
+					{{description.text}}</p>
+				<p>
+					<strong>ID:</strong> <span class="info-id-entry">{{appCache.currentItem.id}}</span>
+				</p>
+				<hr>
+				<p title="{{appCache.currentModel.id}}">
+					<strong>Model:</strong> <br /> <a
+						ng-click="showView('model', appCache.currentItem.modelId)"
+						class="info-source-description"
+						ng-bind="appCache.currentModel.name"> </a> <br /> <span
+						class="info-source-url" ng-bind="appCache.currentModel.uri">
 
-          </p>
-          <button class="secondary small" ng-click="showEdit(appCache.context, appCache.currentItemId, appCache.currentModelId)">
-            <i class="fa fa-pencil"></i> 
-            Edit
-          </button>
-          <button class="secondary small" data-reveal-id="modalDeleteComp">
-            <i class="fa fa-trash-o"></i> 
-            Delete
-          </button>
-          <!--button class="secondary small" >
+					</span>
+				</p>
+				<hr>
+				<p>
+					<strong>Levels:</strong> <br /> <span
+						ng-repeat="id in appCache.currentItem.levelIds"
+						title="[{{appCache.levelCache[id].id}}] (Rank {{appCache.levelCache[id].rank}})">
+						<span
+						ng-bind="appCache.levelCache[id].name + ' - ' + appCache.levelCache[id].description"></span>
+						<br />
+					</span>
+				</p>
+				<hr>
+				<p class="relationships">
+					<strong>Relationships:</strong> <br /> <span
+						ng-hide="objectLength(appCache.currentItem.relationships) != 0">
+						This Competency has no Relationships yet! </span> <span
+						ng-repeat="(relationshipType, relationships) in appCache.currentItem.relationships">
+						<span class="info-property-item-name">
+							{{relationshipType}}: </span> <span class="data-property-values">
+							<span data-object-id="12345"
+							ng-repeat="relatedId in relationships"> <a
+								ng-click="showView(appCache.context, relatedId, relatedCompetencies[relatedId].modelId)"
+								title="{{relatedCompetencies[relatedId].modelId + '\n' + relatedCompetencies[relatedId].id}}">
+									{{relatedCompetencies[relatedId].title}} </a>
+						</span>
+					</span> <br />
+					</span>
+
+				</p>
+				<button class="secondary small"
+					ng-click="showEdit(appCache.context, appCache.currentItemId, appCache.currentModelId)">
+					<i class="fa fa-pencil"></i> Edit
+				</button>
+				<button class="secondary small" data-reveal-id="modalDeleteComp" ng-hide="true">
+					<i class="fa fa-trash-o"></i> Delete
+				</button>
+				<!--button class="secondary small" >
             <i class="fa fa-user"></i> 
             Find profiles
           </button-->
-      </div>
-    </div>
-  </div>
+			</div>
+		</div>
+	</div>
 </div>
