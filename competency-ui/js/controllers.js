@@ -251,7 +251,7 @@ controller('viewController', ['$scope', '$routeParams', '$location', 'search', '
 							$scope.relatedCompetencies[compId] = result[compId];
 						}
 					}, function(error){
-						console.log(error);
+						alert.setErrorMessage(error);
 					}, function(tempResult){
 						for(var compId in tempResult){
 							$scope.relatedCompetencies[compId] = tempResult[compId];
@@ -278,11 +278,13 @@ controller('viewController', ['$scope', '$routeParams', '$location', 'search', '
 			break;
 		}
 	}, function(error){
-		alert.setErrorMessage(error, {context: $routeParams.context, itemId: $routeParams.itemId, modelId: $routeParams.modelId});
-	
-		$scope.goBack();
+		if(error.code == undefined){
+			console.log(error);
+		}else{
+			alert.setErrorMessage(error, {context: $routeParams.context, itemId: $routeParams.itemId, modelId: $routeParams.modelId});
+		}
 		
-		console.log(error);
+		
 	}, function(tempResult){
 		switch(appCache.context){
 		case contexts.profile:
@@ -580,8 +582,8 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 			appCache.editedItem.levels = modelData.levels;
 
 			checkIfBinary();
-		}, function(){
-			alert('error');
+		}, function(error){
+			alert.setWarningMessage(error)
 		});
 
 	}
@@ -781,8 +783,8 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 	}
 }]).
 
-controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'session', 'context', 'userItem',
-                                     function($scope, $routeParams, appCache, session,  context, userItem) {
+controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'session', 'context', 'userItem', 'alert',
+                                     function($scope, $routeParams, appCache, session,  context, userItem, alert) {
 	$scope.appCache = appCache;
 
 	$scope.newPasswordCheck="";
@@ -827,20 +829,16 @@ controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'sess
 					search.clearResults(context.profile);
 					$scope.showView('profile', newUser.id);
 				}, function(error){
-					console.log(error);
+					alert.setErrorMessage(error);
 				})  
 			}else{
 				console.log("Unmatched passwords!")
 			}
 		}else{
-			if(appCache.editedItem.password != appCache.currentItem.password){
-
-			}
-
 			userItem.editUser(appCache.editedItem).then(function(updatedUser){
 				$scope.showView('profile', updatedUser.id);
 			}, function(error){
-				console.log(error);
+				alert.setErrorMessage(error);
 			})
 		}
 	}
@@ -1003,8 +1001,8 @@ controller('levelModalController', ['$scope', 'appCache', 'context', 'modelItem'
 
 }]).
 
-controller('createLevelModalController', ['$scope', 'appCache', 'context',
-                                          function($scope, appCache, context) {
+controller('createLevelModalController', ['$scope', 'appCache', 'context', 'alert',
+                                          function($scope, appCache, context, alert) {
 	$scope.appCache = appCache;
 
 	$scope.description="";
@@ -1027,7 +1025,7 @@ controller('createLevelModalController', ['$scope', 'appCache', 'context',
 				id: $scope.name + "-" + $scope.rank + "-" + $scope.description,
 			});
 		}else{
-			alert("A level is required to have a name and rank");
+			alert.setErrorMessage("A level is required to have a name and rank");
 		}
 	}
 
@@ -1037,8 +1035,8 @@ controller('createLevelModalController', ['$scope', 'appCache', 'context',
 
 }]).
 
-controller('recordEditController', ['$scope', '$routeParams', '$location', 'appCache', 'session', 'context', 'recordItem', 'competencyItem', 'newItem', 'evidenceValueType', 'validationItem', 'userItem',
-                                    function($scope, $routeParams, $location, appCache, session, context, recordItem,competencyItem, newItem, evidenceValueType, validationItem, userItem) {
+controller('recordEditController', ['$scope', '$routeParams', '$location', 'appCache', 'session', 'alert', 'context', 'recordItem', 'competencyItem', 'newItem', 'evidenceValueType', 'validationItem', 'userItem',
+                                    function($scope, $routeParams, $location, appCache, session, alert, context, recordItem,competencyItem, newItem, evidenceValueType, validationItem, userItem) {
 	$scope.appCache = appCache;
 	$scope.competencyItem = competencyItem;
 
@@ -1066,7 +1064,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 				user[i] = result[i];
 			}
 		}, function(error){
-			console.log("Error: "+ error);
+			alert.setErrorMessage(error);
 		}, function(tempResult){
 			for(var i in tempResult){
 				user[i] = tempResult[i];
@@ -1090,8 +1088,8 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 		$scope.create = false;
 	}else{
 		if($location.search().userId == undefined){
-			console.log("Error: Cannot Create Record Unless userId parameter is set");
 			$scope.goHome();
+			alert.setErrorMessage("Error: Cannot Create Record Unless userId parameter is set");
 		}
 
 		getUser($location.search().userId);
@@ -1111,17 +1109,17 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 					$location.$$search = {};
 					$scope.showView('profile', user.id);
 				}, function(error){
-					console.log("Error: "+error);
+					alert.setErrorMessage(error)
 				})
 			}else{
 				recordItem.editRecord(user.id, appCache.editedItem.id, appCache.editedItem).then(function(updatedRecord){
 					$scope.showView('profile', user.id);
 				}, function(error){
-					console.log("Error: "+error);
+					alert.setErrorMessage(error)
 				})
 			}
 		}else{
-			console.log("Warning: Make sure you save your validations or evidence before saving the record");
+			alert.setWarningMessage("Save or Cancel the validations before Saving the record");
 		}
 
 	}
@@ -1136,7 +1134,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 
 	$scope.addValidation = function(){
 		if($scope.editingValidation != undefined){
-			console.log("Error: Finish Editing before Creating a new Validation");
+			alert.setErrorMessage("Finish Editing the current Validation before Creating a new Validation");
 			return;
 		}
 		if($scope.newValidation == undefined){
@@ -1147,7 +1145,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 
 				if(validation.agentId == "user-"+session.currentUser.id 
 						&& validation.date.indexOf(dateString) != -1){
-					console.log("error: you can only create one validation per day");
+					alert.setErrorMessage("You can only create one validation per day");
 					return;
 				}
 			}
@@ -1175,14 +1173,14 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 
 	$scope.editValidation = function(validationId){
 		if($scope.newValidation != undefined){
-			console.log("Error: Save new Validation before Editing another");
+			alert.setErrorMessage("Save new Validation before Editing another");
 			return;
 		}
 
 		if($scope.editingValidation == undefined){
 			$scope.editingValidation = validationId;  
 		}else{
-			console.log("error: save or cancel current edit");
+			alert.saveErrorMessage("Save or cancel current edit before editing another");
 		}
 
 	}
@@ -1190,6 +1188,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 	$scope.cancelEditValidation = function(){
 		$scope.editingValidation = undefined;
 		$scope.editingEvidence = undefined;
+		$scope.newEvidence = undefined;
 	}
 
 	$scope.saveValidation = function(){
@@ -1210,7 +1209,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 
 					$scope.newValidation = undefined;
 				}, function(error){
-					console.log("error: "+error);
+					alert.setErrorMessage(error);
 				})
 			}else{
 				var val = appCache.editedItem.validations[$scope.editingValidation];
@@ -1219,7 +1218,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 
 					$scope.editingValidation = undefined;
 				}, function(error){
-					console.log("error: "+error);
+					alert.setErrorMessage(error);
 				})
 			}
 		}
@@ -1259,7 +1258,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 					newValidation.evidences[newEvidence.id] = newEvidence;
 					$scope.newEvidence = undefined;
 				}, function(error){
-					console.log("Error: "+error);
+					alert.setErrorMessage(error);
 				});
 				// Add to Existing Validation
 			}else{
@@ -1269,7 +1268,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 
 					$scope.newEvidence = undefined;
 				}, function(error){
-					console.log("error: "+error);
+					alert.setErrorMessage(error);
 				})
 			}
 			// Existing Evidence
@@ -1303,7 +1302,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 			validationItem.getEvidence($scope.user.id, evidenceId).then(function(evidence){
 				validObj.evidences[evidenceId] = evidence;
 			}, function(error){
-				console.log("error: "+error);
+				alert.setErrorMessage(error);
 			}, function(tempEvidence){
 				validObj.evidences[evidenceId] = tempEvidence;
 			})
@@ -1325,7 +1324,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 			validationItem.getEvidence($scope.user.id, evidenceId).then(function(evidence){
 				validObj.evidences[evidenceId] = evidence;
 			}, function(error){
-				console.log("error: "+error);
+				alert.setErrorMessage(error);
 			}, function(tempEvidence){
 				validObj.evidences[evidenceId] = tempEvidence;
 			})
@@ -1347,8 +1346,18 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 			$scope.viewingEvidence = $scope.editingEvidence;
 			$scope.editingEvidence = undefined;
 		},function(error){
-			console.log("error: "+error);
+			alert.setErrorMessage(error);
 		});
 	}
 
+	$scope.showView = function(context, id){
+		$scope.editingValidation = undefined;
+		$scope.editingEvidence = undefined;
+		
+		$scope.newValidation = undefined;
+		$scope.newEvidence = undefined;
+		
+		$scope.$parent.showView(context, id);
+	}
+	
 }]);

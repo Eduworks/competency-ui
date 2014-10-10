@@ -309,15 +309,35 @@ factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName',
 	}
 }]).
 
-factory('alert', ['$rootScope',
-                    function($rootScope){
+factory('alert', ['$rootScope', 'errorCode',
+                    function($rootScope, errorCode){
 	var errorMessage = "";
 	var warningMessage = "";
 	
 	var setErrorMessage = function(error, data){
 		this.warningMessage = "";
 		if(error.code != undefined){
+			switch(error.code){
+			case errorCode.emptyParam:
+				break;
+			case errorCode.badValue:
+				break;
+			case errorCode.existence:
+				break;
+			case errorCode.defaultObject:
+				break
+			case errorCode.access:
+				$rootScope.goHome();
+				break;
+			case errorCode.login:
+				$rootScope.goLogin();
+				break;
+			case errorCode.expired:
+				$rootScope.goLogin();
+				break;
+			}
 			
+			this.errorMessage = error.msg;
 		}else{
 			this.errorMessage = error;
 		}
@@ -519,11 +539,15 @@ factory('appCache', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'c
 			case contexts.profile:
 				userItem.getUser(itemId).then(function(userData){
 					if(current.context == contexts.profile){
-						for(var i in userData){
-							currentItem[i] = userData[i];    
+						if(currentItem.id = itemId){
+							for(var i in userData){
+								currentItem[i] = userData[i];    
+							}
+		
+							deferred.resolve(currentItem)
+						}else{
+							deferred.reject("changed item");
 						}
-	
-						deferred.resolve(currentItem)
 					}else{
 						deferred.reject("changed context");
 					}
@@ -897,7 +921,6 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 
 			deferred.resolve(result);
 
-			//callbackObj.setResults(result, 'competency');
 		}).error(function(data, status, headers, config){
 			deferred.reject(data);
 		});
@@ -1242,6 +1265,7 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 
 					deferred.resolve(cache[modelId]);
 				}).error(function(data, status, headers, config){
+					delete(cache[modelId])
 					deferred.reject(data);
 				});
 
@@ -1394,7 +1418,7 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 
 					deferred.resolve(cache[modelItem.id]);
 				}).error(function(data, status, headers, config){
-
+					deferred.reject(data);
 				});
 
 		return deferred.promise;
@@ -1476,7 +1500,7 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 					}
 					deferred.resolve(cache);
 				}).error(function(data, status, headers, config){
-					alert('error searching models');
+					deferred.reject(data);
 				})
 
 				deferred.notify(cache);
@@ -1619,10 +1643,9 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 			transformRequest: function(data){ return data; }
 				}).success(function(data, status, headers, config){
 					for(var id in data){
-						if(data[id] instanceof Object){
+						if(data[id].code == undefined){
 							cache[userId].records[id] = recordItem.makeLocalRecord(data[id], id, userId);
-						}
-						
+						}	
 					}
 
 					if(userRead && compRead){
@@ -1640,7 +1663,7 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 			transformRequest: function(data){ return data; }
 				}).success(function(data, status, headers, config){
 					for(var modelId in data){
-						if(data[modelId] instanceof Object){
+						if(data[modelId].code == undefined){
 							for(var compId in data[modelId]){
 								if(competencyItem.competencyCache[modelId] == undefined){
 									competencyItem.competencyCache[modelId] = {};
@@ -1929,7 +1952,7 @@ factory('levelItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 						deferred.resolve(cache[levelId]);
 					}
 				}).error(function(data, status, headers, config){
-
+					deferred.reject(data);
 				});
 
 		return deferred.promise;

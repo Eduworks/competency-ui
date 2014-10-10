@@ -131,37 +131,52 @@ angular.module('CompetencyManager',
 	 session.loadUser();
 	 appCache.loadCaches();
 
+	 var pushLocation = function(){
+		 var obj = {};
+		 obj.path = $location.path();
+		 obj.context = appCache.context;
+		 obj.search = {};
+		 angular.extend(obj.search, $location.search());
+		 appCache.pushPrevLoc(obj)
+	 }
+	 
 	 if(appCache.modelCache['model-default'] == undefined || appCache.modelCache['model-default'] == {}){
 		 modelItem.getAllModels();
 	 }
 
 	 $rootScope.goLogin = function(){
+		 alert.clearMessages();
+		 
 		 $location.path("/login");
+		 $location.search({})
 	 }
 
 	 $rootScope.goHome = function(){
+		 alert.clearMessages();
+		 pushLocation();
+		 
 		 $location.path("/home");
+		 $location.search({});
 	 }
 
 	 $rootScope.showSearch = function(context){
 		 alert.clearMessages();
-		 appCache.saveCaches();
 
-		 appCache.pushPrevLoc($location.path());
+		 pushLocation();
 
 		 if(appCache.context != context){
 			 search.query = "";
 		 }
 
 		 appCache.setContext(context);
+		 $location.search({});
 		 $location.path("/search/"+appCache.context);
 	 }
 
 	 $rootScope.showResults = function(context, query, model){
 		 alert.clearMessages();
-		 appCache.saveCaches();
 
-		 appCache.pushPrevLoc($location.path());
+		 pushLocation();
 
 		 appCache.setContext(context);
 
@@ -182,10 +197,8 @@ angular.module('CompetencyManager',
 
 	 $rootScope.showCreate = function(context){
 		 alert.clearMessages();
-		 
-		 appCache.saveCaches();
 
-		 appCache.pushPrevLoc($location.path());
+		 pushLocation();
 
 		 // Save User Id if Creating Record
 		 var id;
@@ -207,10 +220,8 @@ angular.module('CompetencyManager',
 
 	 $rootScope.showEdit = function(context, itemId, modelId){
 		 alert.clearMessages();
-		 
-		 appCache.saveCaches();
 
-		 appCache.pushPrevLoc($location.path());
+		 pushLocation();
 
 		 var location = "/edit/"+context;
 
@@ -239,10 +250,8 @@ angular.module('CompetencyManager',
 
 	 $rootScope.showView = function(context, itemId, modelId){
 		 alert.clearMessages();
-		 
-		 appCache.saveCaches();
 
-		 appCache.pushPrevLoc($location.path());
+		 pushLocation();
 
 		 var location = "/view/"+context;
 
@@ -278,7 +287,6 @@ angular.module('CompetencyManager',
 	 }
 
 	 $rootScope.goBack = function(){
-		 appCache.saveCaches();
 		 alert.clearMessages();
 
 		 var prevLoc = appCache.popPrevLoc();
@@ -286,9 +294,23 @@ angular.module('CompetencyManager',
 		 if(prevLoc == undefined){
 			 $rootScope.goHome();
 		 }else{
-			 appCache.setContext(appCache.prevContext);
-
-			 $window.history.back();
+			 if(prevLoc.path.indexOf("edit") != -1 || prevLoc.path.indexOf("create") != -1){
+				 while(prevLoc != undefined && (prevLoc.path.indexOf("edit") != -1 || prevLoc.path.indexOf("create") != -1) || prevLoc.path.valueOf() == $location.path().valueOf()){
+					 prevLoc = appCache.popPrevLoc();
+				 }
+				 
+				 if(prevLoc == undefined){
+				 	$rootScope.goHome();
+				 }else{
+					 $location.search(prevLoc.search);
+					 $location.path(prevLoc.path);
+					 appCache.setContext(prevLoc.context);
+				 }
+			 }else{
+				 appCache.setContext(appCache.prevContext);
+				 $window.history.back();
+			 }
+			 
 		 }
 	 }
 
