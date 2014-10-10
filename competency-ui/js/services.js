@@ -637,13 +637,6 @@ factory('appCache', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'c
 
 	
 	var clearCaches = function(){
-		if(localStorage){
-			localStorage['competencyCache'] = JSON.stringify({});
-			localStorage['modelCache'] = JSON.stringify({});
-			localStorage['profileCache'] = JSON.stringify({});
-			localStorage['levelCache'] = JSON.stringify({});
-			localStorage['prevLocs'] = JSON.stringify({});
-		}
 		
 		competencyItem.competencyCache = {};
 		modelItem.modelCache = {}
@@ -659,51 +652,10 @@ factory('appCache', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'c
 	}
 
 	var saveCaches = function(){
-		if(localStorage){
-			localStorage['competencyCache'] = JSON.stringify(this.competencyCache);
-			localStorage['modelCache'] = JSON.stringify(this.modelCache);
-			localStorage['profileCache'] = JSON.stringify(this.profileCache);
-			localStorage['levelCache'] = JSON.stringify(this.levelCache);
-			localStorage['prevLocs'] = JSON.stringify(this.prevLocs);
-		}
 
 	}
 
 	var loadCaches = function(){
-		if(localStorage){
-			
-			if(localStorage['competencyCache'] != undefined){
-				var cCache = JSON.parse(localStorage['competencyCache']);
-
-				for(var modelId in cCache){
-					competencyItem.competencyCache[modelId] = cCache[modelId];
-				}
-			}
-			if(localStorage['modelCache'] != undefined){
-				var mCache = JSON.parse(localStorage['modelCache']);
-
-				for(var modelId in mCache){
-					modelItem.modelCache[modelId] = mCache[modelId];
-				}
-			}
-			if(localStorage['profileCache'] != undefined){
-				var pCache =  JSON.parse(localStorage['profileCache']);
-
-				for(var userId in pCache){
-					userItem.userCache[userId] = pCache[userId];
-				}
-			}
-			if(localStorage['levelCache'] != undefined){
-				var lCache = JSON.parse(localStorage['levelCache']);
-
-				for(var levelId in lCache){
-					levelItem.levelCache[levelId] = lCache[levelId];
-				}
-			}
-			if(localStorage['prevLocs'] != undefined){
-				this.prevLocs = JSON.parse(localStorage['prevLocs']);
-			}
-		}
 	}
 
 	return {
@@ -748,6 +700,8 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
                            function($http, $q, levelItem, dataObjectName, apiURL, competencyRelationships, modelItem, session){
 
 	var competencyCache = {};
+	var competencyCacheDefer = {};
+
 
 	var competency = function(competency, competencyId, modelId){
 		this.id = competencyId;
@@ -831,6 +785,7 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 	}
 
 	var getCompetency = function(competencyId, modelId){
+		//TODO: Needs to use cache appropriately.
 		var deferred = $q.defer();
 
 		var cache = this.competencyCache;
@@ -845,16 +800,22 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 		if(this.competencyCache[modelId] == undefined){
 			this.competencyCache[modelId] = {};
 			this.competencyCache[modelId][competencyId] = {};
+			competencyCacheDefer[modelId] = {};
+			competencyCacheDefer[modelId][competencyId] = [];
 		}else if(this.competencyCache[modelId][competencyId] == undefined){
 			this.competencyCache[modelId][competencyId] = {};
+			competencyCacheDefer[modelId][competencyId] = [];
+		}else if(competencyCacheDefer[modelId][competencyId] != undefined){
+			competencyCacheDefer[modelId][competencyId].push(deferred);
+			return deferred.promise;
 		}else if(this.competencyCache[modelId][competencyId] != undefined){
 			var result = {};
 			result[competencyId] = this.competencyCache[modelId][competencyId];
 
 			setTimeout(function(){
-				deferred.notify(result);  
+				deferred.resolve(result);  
 			}, 10);
-
+			return deferred.promise;
 		}
 
 		$http.post(apiURL + "read", data,
@@ -884,6 +845,10 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 							cache[modelId][competencyId][i] = comp[i]; 
 						}
 
+						if (competencyCacheDefer[modelId][competencyId] != undefined)
+							for (var i in competencyCacheDefer[modelId][competencyId])
+								competencyCacheDefer[modelId][competencyId][i].resolve(result);
+						competencyCacheDefer[modelId][competencyId] = undefined;
 						result[compId] = comp;
 					}
 
@@ -1077,6 +1042,8 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 	}
 
 	var editCompetency = function(competencyId, newData){
+		//TODO: Needs to invalidate cache.
+
 		var deferred = $q.defer(); 
 		if(competencyId == undefined || newData.modelId == undefined){
 			deferred.reject("CompetencyId or ModelId not specified");
@@ -1187,6 +1154,8 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
                       function($http, $q, levelItem, dataObjectName, apiURL, session){
 
 	var modelCache = {};
+	var modelLevelCacheDefer = {};
+
 
 	var model = function(model){
 		this.id = model.ontologyId;
@@ -1199,7 +1168,6 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 
 		var levels = {};
 		this.levels = levels;
-		this.allLevels = {};
 
 		this.levelIds = model.defaultLevels;
 		for(var idx in model.defaultLevels){
@@ -1240,6 +1208,8 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 	}
 
 	var getModel = function(modelId){
+		//TODO: Needs to use cache appropriately.
+
 		var cache = this.modelCache;
 
 		var obj = {sessionId: session.currentUser.sessionId};
@@ -1307,6 +1277,8 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 	}
 
 	var getAllLevels = function(modelId){
+		//TODO: Needs to use cache appropriately.
+
 		if(modelId == undefined || modelId == "N/A"){
 			modelId = "model-default";
 		}
@@ -1321,18 +1293,25 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 
 		var cache = this.modelCache;
 
-		if(this.modelCache[modelId] != undefined &&
-				this.modelCache[modelId].allLevels != undefined &&
-				Object.keys(this.modelCache[modelId].allLevels).length > 0 ){
+		if(	this.modelCache[modelId] != undefined &&
+			this.modelCache[modelId].allLevels != undefined &&
+			modelLevelCacheDefer[modelId] == undefined)
+		{
 			setTimeout(function(){
-				deferred.notify(cache[modelId].allLevels);  
+				deferred.resolve(cache[modelId].allLevels);  
 			}, 10);
-
-		}else{
-			this.modelCache[modelId].allLevels= {};
+			return deferred.promise;
 		}
-
-
+		else if (this.modelCache[modelId].allLevels == undefined)
+		{
+			this.modelCache[modelId].allLevels = {};
+			modelLevelCacheDefer[modelId] = [];
+		}
+		else
+		{
+			modelLevelCacheDefer[modelId].push(deferred);
+			return deferred.promise;
+		}
 
 		$http.post(apiURL + "level/all", data,
 				{
@@ -1348,8 +1327,14 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 						for(var i in result[idx]){
 							cache[modelId].allLevels[idx][i] = result[idx][i];  
 						}
-					}
 
+						if (modelLevelCacheDefer[modelId] != undefined)
+							for (var i in modelLevelCacheDefer[modelId])
+							{
+								modelLevelCacheDefer[modelId][i].resolve(result);
+							}
+						modelLevelCacheDefer[modelId] = undefined;
+					}
 					deferred.resolve(result);
 				}).error(function(data, status, headers, config){
 
@@ -1360,6 +1345,8 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 	}
 
 	var editModel = function(modelData){
+		//TODO: Needs to invalidate cache.
+
 		if(modelData.id == undefined){
 			alert("Cannot modify model without modelId");
 		}
@@ -1458,6 +1445,8 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 	}
 
 	var getAllModels = function(){
+		//TODO: Needs to use cache appropriately.
+
 
 		var deferred = $q.defer();
 
@@ -1496,6 +1485,8 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 	}
 
 	var addImport = function(modelId, importId){
+		//TODO: Needs to use cache appropriately.
+
 		if(modelId == undefined || importId == undefined){
 			alert("error importing model, modelId or importId not defined");
 		}
@@ -1576,6 +1567,9 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 	}
 
 	var getUser = function(userId){
+		//TODO: Needs to use cache appropriately.
+
+
 		var userRead = false;
 		var recordRead = false;
 		var compRead = false;
@@ -1753,6 +1747,9 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 	}
 
 	var editUser = function(userData){
+		//TODO: Needs to invalidate cache.
+
+
 		var cache = this.userCache;
 		var deferred = $q.defer();
 
@@ -1815,6 +1812,7 @@ factory('levelItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
                       function($http, $q, dataObjectName, apiURL, session){
 
 	var levelCache = {};
+	var levelCacheDefer = {};
 
 	var level =  function(level, levelId){
 		this.id = levelId;
@@ -1832,7 +1830,8 @@ factory('levelItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 		var deferred = $q.defer();
 
 		if(this.levelCache[levelId] == undefined){
-			this.levelCache[levelId] = {};  
+			this.levelCache[levelId] = {};
+			levelCacheDefer[levelId] = [];
 		}else{
 			if(levelId == ":true" || levelId == ":false"){
 				setTimeout(function(){
@@ -1841,10 +1840,18 @@ factory('levelItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 
 				return deferred.promise;
 			}
-
-			setTimeout(function(){
-				deferred.notify(cache[levelId]);
-			})
+			if (levelCacheDefer[levelId] != undefined)
+			{
+				levelCacheDefer[levelId].push(deferred);
+				return deferred.promise;
+			}
+			else
+			{
+				setTimeout(function(){
+					deferred.resolve(cache[levelId]);
+				});
+				return deferred.promise;
+			}
 		}
 
 		var obj = {sessionId: session.currentUser.sessionId};
@@ -1861,11 +1868,13 @@ factory('levelItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 				}).success(function(data, status, headers, config){
 					for(var idx in data){
 						var levelItem = new level(data[idx], levelId);
-
 						for(var i in levelItem){
 							cache[levelId][i] = levelItem[i];
 						}
-
+						if (levelCacheDefer[levelId] != undefined)
+							for (var i in levelCacheDefer[levelId])
+								levelCacheDefer[levelId][i].resolve(cache[levelId]);
+						levelCacheDefer[levelId] = undefined;
 						deferred.resolve(cache[levelId]);
 					}
 				}).error(function(data, status, headers, config){
@@ -1985,6 +1994,7 @@ factory('recordItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'levelItem', '
 	}
 
 	var getRecord = function(recordId, userId){
+		//TODO: Needs to use cache appropriately.
 		var cache = this.recordCache;
 
 		var deferred = $q.defer();
@@ -2123,6 +2133,8 @@ factory('recordItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'levelItem', '
 	}
 
 	var editRecord = function(userId, recordId, recordData){
+		//TODO: Needs to invalidate cache.
+
 		var deferred = $q.defer();
 
 		setTimeout(function(){
@@ -2158,6 +2170,7 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
                            function($http, $q, dataObjectName, apiURL, session){
 
 	var validationCache = {};
+	var validationCacheDefer = {};
 	var evidenceCache = {};
 
 	var validation =  function(data, validationId, recordId, userId){
@@ -2203,20 +2216,32 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 
 
 	var getValidation = function(validationId, recordId, userId){
+		//TODO: Needs to use cache appropriately.
+
 		var cache = this.validationCache;
 
 		var deferred = $q.defer();
 
 		if(this.validationCache[userId] == undefined){
-			this.validationCache[userId] = {};  
+			this.validationCache[userId] = {};
+			validationCacheDefer[userId] = {}; 
+			validationCacheDefer[userId][validationId] = [];  
 		}
-
-		if(this.validationCache[userId][validationId] == undefined){
+		else if(validationCacheDefer[userId][validationId] != undefined)
+		{
+			validationCacheDefer[userId][validationId].push(deferred);
+			return deferred.promise;
+		}
+		else if(this.validationCache[userId][validationId] == undefined){
 			this.validationCache[userId][validationId] = {};
-		}else{
+			validationCacheDefer[userId][validationId] = []; 
+		}
+		else
+		{
 			setTimeout(function(){
-				deferred.notify(cache[userId][validationId]);
-			})
+				deferred.resolve(cache[userId][validationId]);
+			});
+			return deferred.promise;
 		}
 
 		var obj = {sessionId: session.currentUser.sessionId};
@@ -2234,10 +2259,15 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 					for(var id in data){
 						var validationItem = new validation(data[id], id, recordId, userId);
 
+						cache[userId][validationId] = {};
 						for(var i in validationItem){
 							cache[userId][validationId][i] = validationItem[i];
 						}
-
+						
+						if (validationCacheDefer[userId][validationId] != undefined)
+							for (var i in validationCacheDefer[userId][validationId])
+								validationCacheDefer[userId][validationId][i].resolve(cache[userId][validationId]);
+						validationCacheDefer[userId][validationId] = undefined;
 						deferred.resolve(cache[userId][validationId]);
 					}
 				}).error(function(data, status, headers, config){
@@ -2381,6 +2411,8 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 	}
 
 	var updateValidationConfidence = function(userId, recordId, validationId, confidence){
+		//TODO: Needs to invalidate cache.
+
 		var cache = this.validationCache;
 
 		var deferred = $q.defer();
@@ -2423,6 +2455,8 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 
 
 	var createUnattachedEvidence = function(evidenceData, userId){
+		//TODO: Needs to invalidate cache.
+
 		var cache = this.evidenceCache;
 
 		var deferred = $q.defer();
@@ -2481,6 +2515,8 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 	}
 
 	var addEvidenceToValidation = function(evidenceData, validationId, userId){
+		//TODO: Needs to invalidate cache.
+
 		var vCache = this.validationCache;
 		var eCache = this.evidenceCache;
 
@@ -2529,9 +2565,9 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 				}).success(function(data, status, headers, config){
 					var ev = new evidence(data, userId);
 
-					cache[ev.id] = ev;
+					eCache[ev.id] = ev;
 
-					deferred.resolve(cache[ev.id]);
+					deferred.resolve(eCache[ev.id]);
 				}).error(function(data, status, headers, config){
 					deferred.reject(data);
 				});
@@ -2540,6 +2576,8 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 	}
 
 	var getEvidence = function(userId, evidenceId){
+		//TODO: Needs to use cache appropriately.
+
 		var cache = this.evidenceCache;
 
 		var deferred = $q.defer();
@@ -2579,6 +2617,8 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 	}
 
 	var updateEvidence = function(evidenceData, userId, evidenceId){
+		//TODO: Needs to invalidate cache.
+
 		var cache = this.evidenceCache;
 
 		var deferred = $q.defer();
