@@ -180,11 +180,11 @@ angular.module('CompetencyManager',
 
 		 appCache.setContext(context);
 
-		 if($location.path() != "/results/"+appCache.context){
+		 if($location.path() != "/results/"+appCache.context){			 
 			 $location.path("/results/"+appCache.context);
 			 var obj = {};
 			 
-			 if(query != undefined){
+			 if(query != undefined && query != ""){
 				 obj.query=query;
 			 }
 			 
@@ -192,6 +192,7 @@ angular.module('CompetencyManager',
 				 obj.model = model;
 			 }
 			 $location.search(obj);
+			 
 		 }
 	 }
 

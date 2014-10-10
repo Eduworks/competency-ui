@@ -50,8 +50,11 @@ directive('ngDropdownChecklist', ['$parse', '$location', 'search', 'appCache', '
 					
 					if(elm.find("#options ul").is(":hidden") && appCache.context == context.competency && models != undefined){
 						scope.$apply(function(){
-							$location.search('model', models);
-							search.runSearch(context.competency);
+							if($location.path().indexOf('results') != -1){
+								$location.search('model', models);
+								search.runSearch(context.competency);
+							}
+								
 						})
 					}
 				}
@@ -62,8 +65,11 @@ directive('ngDropdownChecklist', ['$parse', '$location', 'search', 'appCache', '
 				
 				if(elm.find("#options ul").is(":hidden") && models != undefined){
 					scope.$apply(function(){
-						$location.search('model', models);
-						search.runSearch(context.competency);
+						if($location.path().indexOf('results') != -1){
+							$location.search('model', models);
+							search.runSearch(context.competency);
+						}
+							
 					})
 				}
 			});

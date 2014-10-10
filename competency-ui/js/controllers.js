@@ -69,11 +69,14 @@ controller('alertController', ['$scope', 'appCache', 'alert', function($scope, a
 	
 }]).
 
-controller('searchController', ['$scope', '$routeParams', '$location', 'search', 'appCache', 'session',
-                                function($scope, $routeParams, $location, search, appCache, session) {
+controller('searchController', ['$scope', '$routeParams', '$location', 'search', 'appCache', 'session', 'context',
+                                function($scope, $routeParams, $location, search, appCache, session, context) {
 	$scope.search = search;
 	$scope.appCache = appCache;
-
+	$scope.contexts = context;
+	
+	$scope.searchBarMessage = "search";
+	
 	if(session.currentUser.sessionId == undefined){
 		$scope.goLogin();
 		return;
@@ -85,6 +88,10 @@ controller('searchController', ['$scope', '$routeParams', '$location', 'search',
 		}else{
 			$scope.goHome();
 		}
+	} 
+	
+	if(appCache.context == context.competency){
+		$scope.searchBarMessage = "Leave Blank to View All Competencies in the Selected Model(s)"
 	}
 
 }]).
@@ -168,6 +175,8 @@ controller('resultsController', ['$scope', '$routeParams', '$location', 'search'
 				}else if($location.search().model == search.ALL_MODELS){
 					search.viewAllModels();
 				}
+			}else if(appCache.context == contexts.competency){
+				search.runSearch(appCache.context);
 			}else{
 				$scope.showSearch();
 			}
@@ -214,6 +223,7 @@ controller('viewController', ['$scope', '$routeParams', '$location', 'search', '
                               function($scope, $routeParams, $location, search, appCache, modelItem, competencyItem, contexts, session, alert) {
 	$scope.appCache = appCache;
 	$scope.search = search;
+	$scope.contexts = contexts;
 
 	$scope.relatedCompetencies = {}
 

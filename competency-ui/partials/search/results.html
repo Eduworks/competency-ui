@@ -5,7 +5,10 @@
 				<span ng-hide="(search.query != '' && search.query != undefined) || appCache.context != contexts.model">
 					All Model Results
 				</span>
-				<span ng-hide="(search.query == '' || search.query == undefined) && appCache.context == contexts.model">
+				<span ng-hide="(search.query != '' && search.query != undefined) || appCache.context != contexts.competency">
+					All Competency Results
+				</span>
+				<span ng-hide="(search.query == '' || search.query == undefined) && (appCache.context == contexts.model || appCache.context == contexts.competency)">
 					{{appCache.context | capitalize}} Results for 
 					<strong id="searchString">
 						{{search.query}}

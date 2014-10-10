@@ -122,6 +122,19 @@ factory('search', ['$rootScope', '$location', 'appCache', 'context', 'modelItem'
 
 			var mod = (context != contexts.competency ? undefined : this.model); 
 			$rootScope.showResults(context, this.query, mod);
+		}else if(context == contexts.competency){
+			if(this.model == "" || this.model == undefined){
+				this.model = this.ALL_MODELS;
+			}
+			var search = this;
+			
+			competencyItem.getAllCompetencies(this.model).then(function(data){
+				var results = data;
+				
+				search.setResults(results, contexts.competency);
+			});
+			
+			$rootScope.showResults(contexts.competency, this.query, this.model);
 		}else if(this.prevQuery != "" && this.prevQuery != undefined){
 			this.query = this.prevQuery;
 		}else{
@@ -885,12 +898,56 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 		return deferred.promise;
 	}
 
+	var getAllCompetencies = function(modelId){
+		var deferred = $q.defer();
+		
+		var cache = this.competencyCache;
+		
+		var obj = {sessionId: session.currentUser.sessionId};
+		if(modelId != undefined && modelId[0] != "all"){
+			obj.modelId = modelId;
+		}
+		
+		var data = new FormData();
+		data.append(dataObjectName, JSON.stringify(obj));
+
+		var result = {};
+
+		$http.post(apiURL + "all", data,
+				{
+			headers: {'Content-Type': undefined},
+			transformRequest: function(data){ return data; }
+				}
+		).success(function(data, status, headers, config){
+
+			var result = {};
+			
+			for(var modelId in data){
+				for(var compId in data[modelId]){
+					result[compId] = new competency(data[modelId][compId], compId, modelId);
+
+					if(cache[modelId] == undefined){
+						cache[modelId] = {};
+					}
+
+					cache[modelId][compId] = result[compId];
+				}
+			}
+
+			deferred.resolve(result);
+		}).error(function(data, status, headers, config){
+			deferred.reject(data);
+		});
+		
+		return deferred.promise;
+	}
+	
 	var searchCompetencyPromise = function(query, modelId){
 		var cache = this.competencyCache;
 
 		var obj = {sessionId: session.currentUser.sessionId};
 		obj.query = query;
-		if(modelId != undefined){
+		if(modelId != undefined && modelId[0] != "all"){
 			obj.modelId = modelId;
 		}
 
@@ -1160,6 +1217,8 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 		competencyCache: competencyCache,
 
 		getCompetency: getCompetency,
+		getAllCompetencies: getAllCompetencies,
+		
 		makeLocalCompetency: function(data, competencyId, modelId){ 
 			return new competency(data, competencyId, modelId);
 		},
@@ -1643,7 +1702,7 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 			transformRequest: function(data){ return data; }
 				}).success(function(data, status, headers, config){
 					for(var id in data){
-						if(data[id].code == undefined){
+						if(data[id] instanceof Object && data[id].code == undefined){
 							cache[userId].records[id] = recordItem.makeLocalRecord(data[id], id, userId);
 						}	
 					}
@@ -1663,7 +1722,7 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 			transformRequest: function(data){ return data; }
 				}).success(function(data, status, headers, config){
 					for(var modelId in data){
-						if(data[modelId].code == undefined){
+						if(data[modelId] instanceof Object && data[modelId].code == undefined){
 							for(var compId in data[modelId]){
 								if(competencyItem.competencyCache[modelId] == undefined){
 									competencyItem.competencyCache[modelId] = {};
