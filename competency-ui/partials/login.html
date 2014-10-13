@@ -4,8 +4,8 @@
 			<div class="content medium-6 columns medium-centered">
 				<h1 style="color: white;">Competency Management Tool</h1>
 
-				<div data-alert class="alert-box alert" ng-class="{'hide':loginMessage.message == ''}">
-					{{loginMessage.message}}
+				<div data-alert class="alert-box alert" ng-class="{'hide':session.loginMessage.msg.length == 0}">
+					{{session.loginMessage.msg}}
 					<span ng-click="clearMessage()" class="close">&times;</span>
 				</div>
 

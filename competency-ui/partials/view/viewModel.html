@@ -36,7 +36,7 @@
 
 				<button class="secondary small"
 					ng-click="showEdit(appCache.context, appCache.currentItemId, appCache.currentModelId)"
-					ng-hide="appCache.currentItemId == 'model-default'">
+					ng-hide="appCache.currentItemId == 'model-default' || appCache.currentItem.accessControl.admin.indexOf(session.currentUser.id) == -1">
 					<i class="fa fa-pencil"></i> Edit
 				</button>
 

@@ -26,6 +26,7 @@ value('newItem', {
 		description: "",
 		levels: {},
 		allLevels: {":true": {id: ":true", name: "True", rank: 1}, ":false": {id: ":false", name:"False", rank: 0}},
+		accessControl:{admin:[], user:[], agent:[], type:"public"}
 	}, 
 	'profile': {
 		id: "",
@@ -206,9 +207,11 @@ factory('search', ['$rootScope', '$location', 'appCache', 'context', 'modelItem'
 	}
 }]).
 
-factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 
+factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName',
                            function($rootScope, $q, $http, apiURL, dataObjectName){
 	var currentUser = {id: ""};
+	
+	var loginMessage = {code:"", msg:""};
 	
 	var sessionUser = function(user, userId){
 		this.id = userId;
@@ -273,6 +276,10 @@ factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName',
 	}
 
 	var loadUser = function(){
+		var login = this;
+		
+		var deferred = $q.defer();
+		
 		if(localStorage){
 			if(localStorage['currentUser'] != undefined){
 				this.currentUser = JSON.parse(localStorage['currentUser']);
@@ -292,9 +299,9 @@ factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName',
 				headers: {'Content-Type': undefined},
 				transformRequest: function(data){ return data; }
 			}).success(function(data, status, headers, config){
-				
+				deferred.resolve(curUser);
 			}).error(function(data, status, headers, config){
-				console.log("error: "+ data)
+				console.log(data)
 				
 				var noUser = {id:""};
 				
@@ -302,9 +309,13 @@ factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName',
 					curUser[i] = noUser[i];
 				}
 				save(curUser);
-				$rootScope.goLogin();
+				
+				login.loginMessage = data;
+				deferred.reject(data);
 			});
 		}
+		
+		return deferred.promise;
 	}
 	
 	var validate = function(){
@@ -313,6 +324,8 @@ factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName',
 	
 	return {
 		currentUser: currentUser,
+		
+		loginMessage: loginMessage,
 		
 		login: login,
 		logout: logout,
@@ -377,8 +390,8 @@ factory('alert', ['$rootScope', 'errorCode',
 	}
 }]).
 
-factory('appCache', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'context', 'newItem', 'modelItem', 'userItem', 'competencyItem', 'recordItem', "levelItem", 
-                     function($rootScope, $q, $http, apiURL, dataObjectName, contexts, newItem, modelItem, userItem, competencyItem, recordItem, levelItem){
+factory('appCache', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'context', 'newItem', 'session', 'modelItem', 'userItem', 'competencyItem', 'recordItem', "levelItem", 
+                     function($rootScope, $q, $http, apiURL, dataObjectName, contexts, newItem, session, modelItem, userItem, competencyItem, recordItem, levelItem){
 
 	var currentUser = {id: ""};
 
@@ -703,7 +716,7 @@ factory('appCache', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'c
 		pushPrevLoc: pushPrevLoc,
 		popPrevLoc: popPrevLoc,
 
-		currentUser: currentUser,
+		currentUser: session.currentUser,
 
 		currentItemId: currentItemId,
 		currentModelId: currentModelId,
@@ -834,6 +847,11 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 		var data = new FormData();
 		data.append(dataObjectName, JSON.stringify(obj));
 
+		if(competencyCacheDefer[modelId] == undefined){
+			competencyCacheDefer[modelId] = {};
+		}
+		
+		
 		if(this.competencyCache[modelId] == undefined){
 			this.competencyCache[modelId] = {};
 			this.competencyCache[modelId][competencyId] = {};
@@ -1250,6 +1268,7 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 
 		var levels = {};
 		this.levels = levels;
+		this.accessControl = model.accessControl;
 
 		this.levelIds = model.defaultLevels;
 		for(var idx in model.defaultLevels){
@@ -1376,6 +1395,10 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 
 		var cache = this.modelCache;
 
+		if(this.modelCache[modelId] == undefined){
+			this.modelCache[modelId] = {};
+		}
+		
 		if(	this.modelCache[modelId] != undefined &&
 			this.modelCache[modelId].allLevels != undefined &&
 			modelLevelCacheDefer[modelId] == undefined)
@@ -1430,6 +1453,9 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 	var editModel = function(modelData){
 		//TODO: Needs to invalidate cache.
 
+		var basicsDone = false;
+		var accessDone = false;
+		
 		if(modelData.id == undefined){
 			alert("Cannot modify model without modelId");
 		}
@@ -1475,11 +1501,63 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 						cache[modelItem.id][i] = modelItem[i];
 					}
 
-					deferred.resolve(cache[modelItem.id]);
+					basicsDone = true;
+					if(basicsDone && accessDone){
+						deferred.resolve(cache[modelItem.id]);
+					}
+					
 				}).error(function(data, status, headers, config){
 					deferred.reject(data);
 				});
+		
+		var obj = {sessionId: session.currentUser.sessionId};
+		obj.modelId = modelData.id;
+		
+		for(var i in modelData.accessControl){
+			switch(i){
+			case "type":
+				obj.modelPrivacy = modelData.accessControl.type;
+				break
+			case "admin":
+				obj.modelAdmin = modelData.accessControl.admin;
+				break;
+			case "user":
+				obj.modelUser = modelData.accessControl.user;
+				break;
+			case "agent":
+				obj.modelAgent = modelData.accessControl.agent;
+				break;
+			default:
+				break;
+			}
+		}
+		
+		var data = new FormData();
+		data.append(dataObjectName, JSON.stringify(obj));
 
+		$http.post(apiURL + "model/updateAccessControl", data,
+				{
+			headers: {'Content-Type': undefined},
+			transformRequest: function(data){ return data; }
+				}).success(function(data, status, headers, config){
+					var modelItem = new model(data);
+
+					if(cache[modelItem.id] == undefined){
+						cache[modelItem.id] = {};
+					}
+
+					for(var i in modelItem){
+						cache[modelItem.id][i] = modelItem[i];
+					}
+
+					accessDone = true;
+					if(basicsDone && accessDone){
+						deferred.resolve(cache[modelItem.id]);
+					}
+				}).error(function(data, status, headers, config){
+					deferred.reject(data);
+				});
+		
 		return deferred.promise;
 	}
 

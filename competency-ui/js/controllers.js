@@ -5,6 +5,7 @@
 angular.module('CompetencyManager.controllers', []).
 controller('loginController', ['$scope', '$location', '$rootScope', 'session', 'search', 'appCache', 'modelItem',
                                function($scope, $location, $rootScope, session, search, appCache, modelItem) {
+	$scope.session = session;
 	search.clearAll();
 	
 	$scope.password = "";
@@ -14,12 +15,8 @@ controller('loginController', ['$scope', '$location', '$rootScope', 'session', '
 		$rootScope.goHome();
 	}
 	
-	var loginMessage = {code:"", message:""};
-
-	$scope.loginMessage = loginMessage;
-
 	$scope.clearMessage = function(){
-		loginMessage.message = "";
+		session.loginMessage.msg = "";
 	}
 
 	$scope.login = function(){
@@ -33,7 +30,7 @@ controller('loginController', ['$scope', '$location', '$rootScope', 'session', '
 				
 				$rootScope.goHome();
 			}, function(error){
-				loginMessage.message = error;
+				session.loginMessage = error;
 			});
 		}
 	};
@@ -557,6 +554,11 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 	}
 
 	$scope.showLevelOverlay = function(){
+		if(appCache.editedItem.modelId.valueOf() == "model-default".valueOf()){
+			alert.setErrorMessage("Cannot Modify the Levels of a Competency in the Default Model");
+			$scope.levelType = "TorF"
+			return;
+		}
 		if($scope.levelType == "list"){ 
 			var levelModal = $modal.open({
 				templateUrl: "partials/modals/levels.html",
@@ -580,8 +582,6 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 				appCache.editedItem.levels = appCache.currentItem.levels;
 				checkIfBinary();
 			})
-		}else{
-
 		}
 	}
 
@@ -633,6 +633,9 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 
 	$scope.cachedLevels = [];
 
+	$scope.selectedPermission = {admin:"", user:"", agent:""};
+	$scope.selectedPermissionType = "admin";
+	
 	if(session.currentUser.sessionId == undefined){
 		$scope.goLogin();
 		return;
@@ -666,12 +669,19 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 			alert("Cannot modify the default model!");
 			$scope.goHome();
 		}
-		appCache.startEdit(context.model, $routeParams.modelId);
+		appCache.startEdit(context.model, $routeParams.modelId).then(function(){
+			$scope.selectedPermission.admin = appCache.currentItem.accessControl.admin.length > 0 ? appCache.currentItem.accessControl.admin[0] : "";
+			$scope.selectedPermission.user = appCache.currentItem.accessControl.user.length > 0 ? appCache.currentItem.accessControl.user[0] : "";
+			$scope.selectedPermission.agent = appCache.currentItem.accessControl.agent.length > 0 ? appCache.currentItem.accessControl.agent[0] : "";
+		});
 
 		$scope.modelId = $routeParams.modelId;
 		$scope.create = false;
 	}else{
 		appCache.startCreate(context.model);
+		appCache.currentItem.accessControl.admin.push(session.currentUser.id);
+		$scope.selectedPermission.admin = appCache.currentItem.accessControl.admin[0];
+		
 		$scope.create = true;
 	}
 
@@ -679,7 +689,7 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 		if(appCache.editedItem.description == undefined){
 			appCache.editedItem.description = "";
 		}else{
-			alert('Only one Description can be added to a Model');
+			alert.setErrorMessage('Only One Description can be added to a Model');
 		}
 	}
 
@@ -711,14 +721,85 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 				appCache.editedItem.levels = appCache.currentItem.levels;
 				checkIfBinary();
 			})
-		}else{
-
 		}
+	}
+	
+	$scope.startAddPermission = function(){
+		var addPermissionModal = $modal.open({
+			templateUrl: "partials/modals/addPermission.html",
+			backdrop: "static",
+			keyboard: "true",
+			scope: $scope,
+			controller: "permissionModalController",
+			resolve:{
+				'selectedRole': function(){ return $scope.selectedPermissionType; }
+			}
+		});
+		
+		addPermissionModal.result.then(function(permissionObj){
+			if(permissionObj.role == "admin"){
+				if(appCache.editedItem.accessControl.admin.indexOf(permissionObj.id) == -1){
+					var userIdx = appCache.editedItem.accessControl.user.indexOf(permissionObj.id);
+					if(userIdx != -1){
+						appCache.editedItem.accessControl.user.splice(userIdx, 1);
+					}
+					
+					appCache.editedItem.accessControl.admin.push(permissionObj.id)  
+				}
+			}
+			
+			if(permissionObj.role == "user"){
+				var adminIdx = appCache.editedItem.accessControl.admin.indexOf(permissionObj.id);
+				if(adminIdx != -1){
+					alert.setWarningMessage("Moving User from Admin Permission Group to User Permission Group");
+					appCache.editedItem.accessControl.admin.splice(adminIdx, 1);
+				}
+				
+				if(appCache.editedItem.accessControl.user.indexOf(permissionObj.id) == -1){
+					appCache.editedItem.accessControl.user.push(permissionObj.id)
+				}
+			}
+			
+			if(permissionObj.role == "agent"){
+				if(appCache.editedItem.accessControl.agent.indexOf(permissionObj.id) == -1){
+					appCache.editedItem.accessControl.agent.push(permissionObj.id)
+				}
+			}
+			
+			$scope.selectedPermission.admin = appCache.editedItem.accessControl.admin[0];
+			$scope.selectedPermission.user = appCache.editedItem.accessControl.user[0];
+			$scope.selectedPermission.agent = appCache.editedItem.accessControl.agent[0]
+		})
+	}
+	
+	$scope.removePermission = function(){
+		if($scope.selectedPermissionType != ""){
+			if(!$scope.create || $scope.selectedPermission[$scope.selectedPermissionType] != session.currentUser.id){
+				var idx = appCache.editedItem.accessControl[$scope.selectedPermissionType].indexOf($scope.selectedPermission[$scope.selectedPermissionType]);
+				if(idx != -1){
+					appCache.editedItem.accessControl[$scope.selectedPermissionType].splice(idx, 1);
+					
+					$scope.selectedPermission[$scope.selectedPermissionType] = appCache.editedItem.accessControl[$scope.selectedPermissionType][0];
+				}
+			}else{
+				alert.setErrorMessage('Cannot Remove Yourself When Creating a Model')
+			}
+		}
+		
+	}
+	
+	$scope.changedSelectedPermissionType = function(type){
+		$scope.selectedPermissionType = type;
 	}
 
 	$scope.saveEdits = function(){
 		if(appCache.editedItem.name == ""){
 			alert.setErrorMessage("Model Title is required to be set");
+			return;
+		}
+		
+		if(appCache.editedItem.accessControl.admin.length == 0){
+			alert.setErrorMessage("Cannot Leave Model Admin Permission Group Empty");
 			return;
 		}
 		
@@ -786,15 +867,33 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 			if($scope.defaultLevels == "TorF"){
 				appCache.editedItem.levels = {":true": appCache.levelCache[":true"], ":false": appCache.levelCache[":false"]};
 			}
+			
 			modelItem.editModel(appCache.editedItem).then(function(data){
 				$scope.showView(context.model, data.id);
+			}, function(error){
+				alert.setErrorMessage(error);
 			});
+			
 		}
 	}
 }]).
 
-controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'session', 'context', 'userItem', 'alert',
-                                     function($scope, $routeParams, appCache, session,  context, userItem, alert) {
+controller('permissionModalController', ['$scope', 'appCache', 'alert', 'selectedRole', 'userItem', 'recordItem',
+                                         function($scope, appCache, alert, selectedRole, userItem, recordItem){
+	
+	$scope.permission = {id:"", role: selectedRole};
+	
+	$scope.cancel = function(){
+		$scope.$dismiss();
+	}
+	
+	$scope.add = function(){
+		$scope.$close($scope.permission);
+	}
+}]).
+
+controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'session', 'search', 'context', 'userItem', 'alert',
+                                     function($scope, $routeParams, appCache, session, search, context, userItem, alert) {
 	$scope.appCache = appCache;
 
 	$scope.newPasswordCheck="";
@@ -833,6 +932,16 @@ controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'sess
 	}
 
 	$scope.saveEdits = function(){
+		if(appCache.editedItem.firstName == undefined || appCache.editedItem.firstName == ""){
+			alert.setErrorMessage("User's First Name is Required");
+			return;
+		}
+		
+		if(appCache.editedItem.email == undefined || appCache.editedItem.email == ""){
+			alert.setErrorMessage("Users's Email is Required");
+			return;
+		}
+		
 		if($scope.create){
 			if(appCache.editedItem.password == $scope.newPasswordCheck){
 				userItem.createUser(appCache.editedItem).then(function(newUser){
@@ -842,7 +951,7 @@ controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'sess
 					alert.setErrorMessage(error);
 				})  
 			}else{
-				console.log("Unmatched passwords!")
+				alert.setErrorMessage("Password's do not match!")
 			}
 		}else{
 			userItem.editUser(appCache.editedItem).then(function(updatedUser){
@@ -1045,8 +1154,8 @@ controller('createLevelModalController', ['$scope', 'appCache', 'context', 'aler
 
 }]).
 
-controller('recordEditController', ['$scope', '$routeParams', '$location', 'appCache', 'session', 'alert', 'context', 'recordItem', 'competencyItem', 'newItem', 'evidenceValueType', 'validationItem', 'userItem',
-                                    function($scope, $routeParams, $location, appCache, session, alert, context, recordItem,competencyItem, newItem, evidenceValueType, validationItem, userItem) {
+controller('recordEditController', ['$scope', '$routeParams', '$location', '$q', 'appCache', 'session', 'alert', 'context', 'recordItem', 'competencyItem', 'newItem', 'evidenceValueType', 'validationItem', 'userItem',
+                                    function($scope, $routeParams, $location, $q, appCache, session, alert, context, recordItem,competencyItem, newItem, evidenceValueType, validationItem, userItem) {
 	$scope.appCache = appCache;
 	$scope.competencyItem = competencyItem;
 
@@ -1113,7 +1222,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 	}
 
 	$scope.saveRecord = function(){
-		if($scope.editingValidation == undefined && $scope.editingEvidence == undefined){
+		var saveRecord = function(){
 			if($scope.create){
 				recordItem.createRecord(user.id, appCache.editedItem).then(function(newRecord){
 					$location.$$search = {};
@@ -1128,8 +1237,16 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 					alert.setErrorMessage(error)
 				})
 			}
+		}
+		
+		if($scope.editingValidation == undefined && $scope.editingEvidence == undefined && $scope.newValidation == undefined){
+			saveRecord();
 		}else{
-			alert.setWarningMessage("Save or Cancel the validations before Saving the record");
+			$scope.saveValidation(true).then(function(){
+				saveRecord();
+			}, function(error){
+				alert.setErrorMessage(error)
+			});
 		}
 
 	}
@@ -1201,37 +1318,91 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 		$scope.newEvidence = undefined;
 	}
 
-	$scope.saveValidation = function(){
+	$scope.saveValidation = function(defer){
+		var deferred;
+		if(defer){
+			deferred = $q.defer();
+		}
+		
 		if($scope.create){
 			if($scope.editingValidation == undefined){
-				appCache.editedItem.validations[createdValidationsCount++] = $scope.newValidation;
+				var addValidation = function(){
+					appCache.editedItem.validations[createdValidationsCount++] = $scope.newValidation;
 
-				$scope.newValidation = undefined;
+					$scope.newValidation = undefined;
+				}
+				
+				if($scope.newEvidence != undefined){
+					$scope.saveAddEvidence(true).then(function(){
+						addValidation();
+					});
+				}else{
+					addValidation();
+				}
+				
+				
 			}else{
 				$scope.editingValidation = undefined;
 			}
-		}else{
-			if($scope.editingValidation == undefined){
-				var newVal = $scope.newValidation;
-
-				validationItem.createValidation(user.id, $routeParams.recordId, newVal.agentId, newVal.confidence, newVal.evidenceIds).then(function(newValidation){
-					appCache.editedItem.validations[newValidation.id] = newValidation;
-
-					$scope.newValidation = undefined;
-				}, function(error){
-					alert.setErrorMessage(error);
-				})
-			}else{
-				var val = appCache.editedItem.validations[$scope.editingValidation];
-				validationItem.updateValidationConfidence(user.id, $routeParams.recordId, val.id, val.confidence).then(function(editedValidation){
-					appCache.editedItem.validations[val.id] = editedValidation;
-
-					$scope.editingValidation = undefined;
-				}, function(error){
-					alert.setErrorMessage(error);
-				})
+			
+			if(defer){
+				setTimeout(function(){
+					deferred.resolve()
+				}, 10)
 			}
+		}else{
+			var saveValidation = function(){
+				if($scope.editingValidation == undefined){
+					var newVal = $scope.newValidation;
+
+					validationItem.createValidation(user.id, $routeParams.recordId, newVal.agentId, newVal.confidence, newVal.evidenceIds).then(function(newValidation){
+						appCache.editedItem.validations[newValidation.id] = newValidation;
+
+						$scope.newValidation = undefined;
+						
+						if(defer)
+							deferred.resolve();
+					}, function(error){
+						alert.setErrorMessage(error);
+						
+						if(defer)
+							deferred.reject();
+					})
+				}else{
+					var val = appCache.editedItem.validations[$scope.editingValidation];
+					validationItem.updateValidationConfidence(user.id, $routeParams.recordId, val.id, val.confidence).then(function(editedValidation){
+						appCache.editedItem.validations[val.id] = editedValidation;
+
+						$scope.editingValidation = undefined;
+						
+						if(defer)
+							deferred.resolve();
+					}, function(error){
+						alert.setErrorMessage(error);
+						
+						if(defer)
+							deferred.rekect();
+					})
+				}
+			}
+			
+			if($scope.newEvidence != undefined){
+				$scope.saveAddEvidence(true).then(function(){
+					saveValidation();
+				})
+			}else if($scope.editingEvidence != undefined){
+				$scope.saveEditEvidence(true).then(function(){
+					saveValidation();
+				});
+			}else{
+				saveValidation();
+			}
+			
+			
 		}
+		
+		if(defer)
+			return deferred.promise;
 	}
 
 	$scope.startAddEvidence = function(){
@@ -1254,7 +1425,12 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 		$scope.newEvidence = undefined;
 	}
 
-	$scope.saveAddEvidence = function(){
+	$scope.saveAddEvidence = function(defer){
+		var deferred;
+		if(defer){
+			deferred = $q.defer();
+		}
+		
 		var editingValidation = $scope.editingValidation;
 		var newValidation = $scope.newValidation;
 
@@ -1267,8 +1443,14 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 					newValidation.evidenceIds.push(newEvidence.id);
 					newValidation.evidences[newEvidence.id] = newEvidence;
 					$scope.newEvidence = undefined;
+					
+					if(defer)
+						deferred.resolve();
 				}, function(error){
 					alert.setErrorMessage(error);
+					
+					if(defer)
+						deferred.reject();
 				});
 				// Add to Existing Validation
 			}else{
@@ -1277,12 +1459,19 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 					appCache.editedItem.validations[editingValidation].evidences[newEvidence.id] = newEvidence;
 
 					$scope.newEvidence = undefined;
+					
+					if(defer)
+						deferred.resolve();
 				}, function(error){
 					alert.setErrorMessage(error);
+					
+					if(defer)
+						deferred.reject();
 				})
 			}
-			// Existing Evidence
-		}else{
+		
+		}// Existing Evidence
+		else{
 			// New Validation
 			if(editingValidation == undefined){
 				newValidation.evidenceIds.push($scope.newEvidence.id);
@@ -1291,7 +1480,16 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 				// TODO: Call AddExistingEvidenceToValidation
 				appCache.editedItem.validations[editingValidation].evidenceIds.push($scope.newEvidence.id);
 			}
+			
+			if(defer){
+				setTimeout(function(){
+					deferred.resolve();
+				}, 10);
+			}
 		}
+		
+		if(defer)
+			return deferred.promise;
 	}
 
 	$scope.viewEvidence = function(validationId, evidenceId){
@@ -1345,7 +1543,12 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 		$scope.editingEvidence = undefined;
 	}
 
-	$scope.saveEditEvidence = function(){
+	$scope.saveEditEvidence = function(defer){
+		var deferred;
+		if(defer != undefined && defer == true){
+			deferred = $q.defer();
+		}
+		
 		// Call UpdateEvidence
 		var editingValidation = $scope.editingValidation;
 		var evidenceId = $scope.editingEvidence;
@@ -1355,9 +1558,18 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', 'appC
 
 			$scope.viewingEvidence = $scope.editingEvidence;
 			$scope.editingEvidence = undefined;
+			
+			if(defer)
+				deferred.resolve();
 		},function(error){
 			alert.setErrorMessage(error);
+			
+			if(defer)
+				deferred.reject();
 		});
+		
+		if(defer)
+			return deferred.promise;
 	}
 
 	$scope.showView = function(context, id){

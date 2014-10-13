@@ -47,30 +47,92 @@
 				<legend>Model Defaults</legend>
 				<div class="row">
 					<div id="levelDefaults" class="small-12 columns">
-						<label> Competency Levels: <select
+						<label> Competency Levels: 
+						<select
 							id="model-default-levels" ng-change="showLevelOverlay();"
 							ng-model="defaultLevels"
 							ng-options="val as text for (val, text) in levelOptions">
 						</select> {{Object.keys(appCache.editedItem.levels)}}
-							<div ng-click="showLevelOverlay()"
-								ng-hide="defaultLevels == 'TorF' || objectLength(appCache.editedItem.levels) == 0"
-								style="width: 90%; margin: auto; cursor: pointer;">
-								<span style="width: 80%;"> Name: </span> <span
-									style="width: 15%; float: right;"> Rank: </span> <span
-									ng-repeat="(id, levelObj) in appCache.editedItem.levels | orderByObj:'rank'">
-									<input type="text" disabled="disabled"
+						</label>
+						<div ng-click="showLevelOverlay()" 
+							ng-hide="defaultLevels == 'TorF' || objectLength(appCache.editedItem.levels) == 0"
+							style="width: 90%; margin: auto; cursor: pointer;">
+							<span style="width: 80%;"> Name: </span> 
+							<span style="width: 15%; float: right;"> Rank: </span> 
+							<span ng-repeat="(id, levelObj) in appCache.editedItem.levels | orderByObj:'rank'">
+								<input type="text" disabled="disabled"
 									style="width: 80%; float: left; cursor: pointer;"
 									value="{{levelObj.name}}" ng-title="{{levelObj.id}}"></input>
-									<input type="text" disabled="disabled"
+								<input type="text" disabled="disabled"
 									style="width: 15%; float: right; cursor: pointer;"
 									value="{{levelObj.rank}}"></input>
-								</span>
-							</div>
-						</label>
+							</span>
+						</div>
 					</div>
 				</div>
 			</fieldset>
-
+			
+			<fieldset>
+				<legend>Model Permissions</legend>
+				<div class="row">
+					<div class="small-6 columns">
+						<label> 
+							<span>Privacy Level:</span> 
+							<select style="display:inline-block; width: 150px; margin-left:25px;" ng-model="appCache.editedItem.accessControl.type">
+								<option value="public">Public</option>
+								<option value="private">Private</option>
+							</select>
+						</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="small-4 columns">
+						<label>
+							<span>Admin:</span>
+							<select size="5" ng-model="selectedPermission.admin" ng-focus="changedSelectedPermissionType('admin')">
+								<option ng-repeat="userId in appCache.editedItem.accessControl.admin" value="{{userId}}">
+									{{appCache.profileCache[userId].firstName +' '+ appCache.profileCache[userId].lastName}} 
+									[{{userId}}]
+								</option>
+							</select> 
+						</label>
+					</div>
+					<div class="small-4 columns">
+						<label>
+							<span>Users:</span>
+							<select size="5" ng-model="selectedPermission.user" ng-focus="changedSelectedPermissionType('user')">
+								<option ng-repeat="userId in appCache.editedItem.accessControl.user" value="{{userId}}">
+									{{appCache.profileCache[userId].firstName +' '+ appCache.profileCache[userId].lastName}}
+									[{{userId}}]
+								</option>
+							</select> 
+						</label>
+					</div>
+					<div class="small-4 columns">
+						<label>
+							<span>Agents:</span>
+							<select size="5" ng-model="selectedPermission.agent" ng-focus="changedSelectedPermissionType('agent')">
+								<option ng-repeat="userId in appCache.editedItem.accessControl.agent" value="{{userId}}">
+									{{appCache.profileCache[userId].firstName +' '+ appCache.profileCache[userId].lastName}}
+									[{{userId}}]
+								</option>
+							</select> 
+						</label>
+						
+						<a style="float:right;" ng-click="startAddPermission()">
+							<i class="fa fa-plus"></i>
+							Add Permission
+						</a>
+						<a style="float:right;margin-right: 20px;" ng-click="removePermission()">
+							<i class="fa fa-trash-o"></i>
+							Remove
+						</a>
+					</div>
+				</div>
+			</fieldset>
+						
+						
+				
 			<!-- fieldset>
 				<legend>External Source</legend>
 				<div class="switch round">

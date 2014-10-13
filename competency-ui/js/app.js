@@ -128,7 +128,12 @@ angular.module('CompetencyManager',
           function($rootScope, $location, $window, appCache, session, alert, search, contexts, $routeParams, modelItem){
 	 $rootScope.session = session;
 	 
-	 session.loadUser();
+	 session.loadUser().then(function(user){
+		 appCache.profileCache[user.id] = user;
+	 }, function(error){
+		 goLogin();
+	 });
+	 
 	 appCache.loadCaches();
 
 	 var pushLocation = function(){
@@ -211,6 +216,7 @@ angular.module('CompetencyManager',
 
 		 appCache.setNewItem(context);
 
+		 $location.$$search = {};
 		 $location.path("/create/"+appCache.context);
 
 		 // Set User ID in Search Parameters if Creating a Record
