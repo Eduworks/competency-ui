@@ -4,7 +4,7 @@
 			<h3 ng-click="goHome();">
 				<i class="fa fa-graduation-cap"></i> Competency Manager
 			</h3>
-			<ul id="" class="button-group">
+			<ul id="" class="button-group" ng-hide="session.currentUser.sessionId == undefined">
 				<li>
 					<button class="tiny" ng-click="showSearch(context.model);">
 						Models</button>
@@ -28,7 +28,7 @@
                     </button>
                 </li-->
 			</ul>
-			<ul id="" class="button-group right">
+			<ul id="" class="button-group right" ng-hide="session.currentUser.sessionId == undefined">
 				<li><a class="button tiny" ng-click="showView(context.profile, session.currentUser.id)">
 						Profile: {{session.currentUser.id}} </a></li>
 				<li><span class="button tiny" ng-click="logout()">

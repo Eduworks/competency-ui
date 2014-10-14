@@ -72,7 +72,7 @@ controller('searchController', ['$scope', '$routeParams', '$location', 'search',
 	$scope.appCache = appCache;
 	$scope.contexts = context;
 	
-	$scope.searchBarMessage = "search";
+	$scope.searchBarMessage = "Search";
 	
 	if(session.currentUser.sessionId == undefined){
 		$scope.goLogin();
@@ -329,7 +329,14 @@ controller('viewController', ['$scope', '$routeParams', '$location', 'search', '
 	}
 
 	$scope.searchRecords = function(val){
-		return true;
+		if(appCache.competencyCache[val.competencyModelId][val.competencyId].title.indexOf($scope.recordQuery) != -1)
+			return true;
+		if(appCache.modelCache[val.competencyModelId].name.indexOf($scope.recordQuery) != -1)
+			return true;
+		if(appCache.modelCache[val.competencyModelId].id.indexOf($scope.recordQuery) != -1)
+			return true;
+		
+		return false;
 	}
 
 
@@ -899,11 +906,6 @@ controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'sess
 	$scope.newPasswordCheck="";
 
 	$scope.changePassword = false;
-
-	if(session.currentUser.sessionId == undefined){
-		$scope.goLogin();
-		return;
-	}
 	
 	if($routeParams.profileId != undefined){
 		appCache.startEdit(context.profile, $routeParams.profileId);
@@ -915,6 +917,11 @@ controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'sess
 
 		appCache.startCreate(context.profile);
 		$scope.create = true;
+	}
+	
+	if(session.currentUser.sessionId == undefined && !$scope.create){
+		$scope.goLogin();
+		return;
 	}
 
 	$scope.editPassword = function(){
@@ -946,7 +953,15 @@ controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'sess
 			if(appCache.editedItem.password == $scope.newPasswordCheck){
 				userItem.createUser(appCache.editedItem).then(function(newUser){
 					search.clearResults(context.profile);
-					$scope.showView('profile', newUser.id);
+					
+					if(session.currentUser.sessionId == undefined){
+						session.login(appCache.editedItem.id, appCache.editedItem.password).then(function(){
+							$scope.showView('profile', newUser.id);
+						}, function(error){
+							alert.setErrorMessage(error);
+							$scope.goLogin();
+						})
+					}
 				}, function(error){
 					alert.setErrorMessage(error);
 				})  

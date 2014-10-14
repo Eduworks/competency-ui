@@ -304,6 +304,8 @@ angular.module('CompetencyManager',
 			 if(prevLoc.path.indexOf("edit") != -1 || prevLoc.path.indexOf("create") != -1){
 				 while(prevLoc != undefined && (prevLoc.path.indexOf("edit") != -1 || prevLoc.path.indexOf("create") != -1) || prevLoc.path.valueOf() == $location.path().valueOf()){
 					 prevLoc = appCache.popPrevLoc();
+					 if(prevLoc == undefined)
+						 break;
 				 }
 				 
 				 if(prevLoc == undefined){
