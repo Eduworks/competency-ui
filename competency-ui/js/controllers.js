@@ -1128,6 +1128,7 @@ controller('levelModalController', ['$scope', 'appCache', 'context', 'modelItem'
 
 				levelItem.createLevel(modelId, levelData).then(function(levelObj){
 					$scope.allLevels[levelObj.id] = levelObj;
+					findLowestRankId();
 				})
 			}
 		});

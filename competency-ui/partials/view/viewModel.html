@@ -15,7 +15,7 @@
 				<hr>
 				<p>
 					<strong>Default Levels:</strong> <br /> <span
-						ng-repeat="(i,levelObj) in appCache.currentItem.levels"
+						ng-repeat="(i,levelObj) in appCache.currentItem.levels | orderByObj:'rank'"
 						title="[{{levelObj.id}}] (Rank {{levelObj.rank}})">
 						{{levelObj.name}} - {{levelObj.description}} <br />
 					</span>

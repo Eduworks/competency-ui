@@ -156,6 +156,8 @@ factory('search', ['$rootScope', '$location', 'appCache', 'context', 'modelItem'
 			search.setResults(results, contexts.model);
 			
 			$rootScope.showResults(contexts.model, undefined, search.model);
+		}, function(error){
+			alert.setErrorMessage(error);
 		});
 	}
 
