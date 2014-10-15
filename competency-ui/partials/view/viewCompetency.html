@@ -51,7 +51,8 @@
 
 				</p>
 				<button class="secondary small"
-					ng-click="showEdit(appCache.context, appCache.currentItemId, appCache.currentModelId)">
+					ng-click="showEdit(appCache.context, appCache.currentItemId, appCache.currentModelId)"
+					ng-hide="session.currentUser.id == session.guestUser.id">
 					<i class="fa fa-pencil"></i> Edit
 				</button>
 				<button class="secondary small" data-reveal-id="modalDeleteComp" ng-hide="true">

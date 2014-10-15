@@ -25,7 +25,8 @@
 
 					<button class="secondary small"
 						style='float: right; margin-bottom: 0px;'
-						ng-click="showCreate('record')">
+						ng-click="showCreate('record')"
+						ng-hide="session.currentUser.id == session.guestUser.id">
 						<i class="fa fa-plus"></i> Add Record
 					</button>
 
@@ -93,7 +94,7 @@
 
 				<button class="secondary small"
 					ng-click="showEdit(appCache.context, appCache.currentItemId)"
-					ng-hide="session.currentUser.id != appCache.currentItem.id">
+					ng-hide="session.currentUser.id != appCache.currentItem.id || session.currentUser.id == session.guestUser.id">
 					<i class="fa fa-pencil"></i> Edit
 				</button>
 			</div>

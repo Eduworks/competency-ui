@@ -376,7 +376,11 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 	if(session.currentUser.sessionId == undefined){
 		$scope.goLogin();
 		return;
-	}
+	}else if(session.currentUser.id == session.guestUser.id){
+		alert.guestUserError();
+		$scope.goHome();
+		return;
+	} 
 	
 	for(var relationshipName in competencyRelationships){
 		$scope.selectorHelper[relationshipName] = [];
@@ -646,7 +650,11 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 	if(session.currentUser.sessionId == undefined){
 		$scope.goLogin();
 		return;
-	}
+	}else if(session.currentUser.id == session.guestUser.id){
+		alert.guestUserError();
+		$scope.goHome();
+		return;
+	} 
 	
 	$scope.$watch('appCache.modelCache', function(newVal, oldVal){
 		if(appCache.modelCache[$routeParams.modelId] != undefined){
@@ -922,7 +930,11 @@ controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'sess
 	if(session.currentUser.sessionId == undefined && !$scope.create){
 		$scope.goLogin();
 		return;
-	}
+	}else if(session.currentUser.id == session.guestUser.id){
+		alert.guestUserError();
+		$scope.goHome();
+		return;
+	} 
 
 	$scope.editPassword = function(){
 		if($scope.changePassword){
@@ -1210,7 +1222,11 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 	if(session.currentUser.sessionId == undefined){
 		$scope.goLogin();
 		return;
-	}
+	}else if(session.currentUser.id == session.guestUser.id){
+		alert.guestUserError();
+		$scope.goHome();
+		return;
+	} 
 
 	if($routeParams.recordId != undefined && $routeParams.userId != undefined){
 		getUser($routeParams.userId);

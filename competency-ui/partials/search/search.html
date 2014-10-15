@@ -63,7 +63,8 @@
 						></i> View All
 					</a> 
 					<a class="button small secondary"
-						ng-click="showCreate(appCache.context);"> <i
+						ng-click="showCreate(appCache.context);"
+						ng-hide="session.currentUser.id == session.guestUser.id"> <i
 						class="fa fa-plus"></i> Create {{appCache.context | capitalize}}
 					</a>
 				</div>

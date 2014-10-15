@@ -2,7 +2,7 @@
 	<div class="content">
 		<div class="row">
 			<div class="content medium-6 columns medium-centered">
-				<h1 style="color: white;">Competency Management Tool</h1>
+				<h1 style="color: white;text-align:center;">Competency Manager</h1>
 
 				<div data-alert class="alert-box alert" ng-class="{'hide':session.loginMessage.msg.length == 0}">
 					{{session.loginMessage.msg}}
@@ -23,6 +23,11 @@
 					<button type="submit" class="secondary" ng-click="login()">Login</button>
 					<a style="float:right;margin-top:18px;" ng-click="showCreate('profile')">Create New Account</a>
 				</form>
+			</div>
+		</div>
+		<div class="row" ng-hide="session.guestUser.id == '' ">
+			<div class="content medium-6 columns medium-centered" style="font-size:small; text-align:center;">
+				Read Only Guest User Credentials [{{session.guestUser.id}}:{{session.guestUser.password}}]
 			</div>
 		</div>
 	</div>

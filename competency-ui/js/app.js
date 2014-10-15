@@ -123,6 +123,7 @@ angular.module('CompetencyManager',
 	 );
 
 	 $routeProvider.otherwise({redirectTo: '/login'});
+	 //$locationProvider.html5Mode(true);
 
  }]).run(['$rootScope', '$location', '$window', 'appCache', 'session', 'alert', 'search', 'context', '$routeParams', 'modelItem',
           function($rootScope, $location, $window, appCache, session, alert, search, contexts, $routeParams, modelItem){
@@ -202,6 +203,10 @@ angular.module('CompetencyManager',
 	 }
 
 	 $rootScope.showCreate = function(context){
+		 if(session.currentUser.id == session.guestUser.id){
+			 alert.guestUserError();
+			 return;
+		 }
 		 alert.clearMessages();
 
 		 pushLocation();
@@ -226,6 +231,10 @@ angular.module('CompetencyManager',
 	 }
 
 	 $rootScope.showEdit = function(context, itemId, modelId){
+		 if(session.currentUser.id == session.guestUser.id){
+			 alert.guestUserError();
+			 return;
+		 }
 		 alert.clearMessages();
 
 		 pushLocation();

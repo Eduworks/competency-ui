@@ -209,8 +209,14 @@ factory('search', ['$rootScope', '$location', 'appCache', 'context', 'modelItem'
 	}
 }]).
 
-factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName',
-                           function($rootScope, $q, $http, apiURL, dataObjectName){
+factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'guestUser',
+                           function($rootScope, $q, $http, apiURL, dataObjectName, guestUserDefinition){
+	var guestUser = {id: "", password: ""};
+	if(guestUserDefinition.exists){
+		guestUser.id = guestUserDefinition.userId;
+		guestUser.password = guestUserDefinition.password;
+	}
+	
 	var currentUser = {id: ""};
 	
 	var loginMessage = {code:"", msg:""};
@@ -325,6 +331,7 @@ factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName',
 	}
 	
 	return {
+		guestUser: guestUser,
 		currentUser: currentUser,
 		
 		loginMessage: loginMessage,
@@ -371,6 +378,10 @@ factory('alert', ['$rootScope', 'errorCode',
 		}
 	}
 	
+	var guestUserError = function(){
+		this.errorMessage = "Guest User only has Read Access to Models, Competencies and Records";
+	}
+	
 	var setWarningMessage = function(message){
 		this.errorMessage = "";
 		this.warningMessage = message;
@@ -387,6 +398,8 @@ factory('alert', ['$rootScope', 'errorCode',
 		
 		setErrorMessage: setErrorMessage,
 		setWarningMessage: setWarningMessage,
+		
+		guestUserError: guestUserError,
 		
 		clearMessages: clearMessages,
 	}

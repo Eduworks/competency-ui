@@ -18,9 +18,9 @@
 			<a id="showSearch" class="button tiny" ng-click="showSearch(appCache.context);"> 
 				<i class="fa fa-search"></i>
 			</a> 
-			<a id="addItem" class="button tiny" ng-click="showCreate(appCache.context);"> 
+			<a id="addItem" class="button tiny" ng-click="showCreate(appCache.context);" ng-hide="session.currentUser.id == session.guestUser.id"> 
 				<i class="fa fa-plus"></i>
-				Create New
+				Create New {{appCache.context | capitalize}}
 			</a>
 		</div>
 	</div>
