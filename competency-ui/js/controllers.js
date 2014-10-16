@@ -329,12 +329,16 @@ controller('viewController', ['$scope', '$routeParams', '$location', 'search', '
 	}
 
 	$scope.searchRecords = function(val){
-		if(appCache.competencyCache[val.competencyModelId][val.competencyId].title.indexOf($scope.recordQuery) != -1)
-			return true;
-		if(appCache.modelCache[val.competencyModelId].name.indexOf($scope.recordQuery) != -1)
-			return true;
-		if(appCache.modelCache[val.competencyModelId].id.indexOf($scope.recordQuery) != -1)
-			return true;
+		if(appCache.competencyCache[val.competencyModelId] != undefined && 
+				appCache.competencyCache[val.competencyModelId][val.competencyId] != undefined && 
+				appCache.modelCache[val.competencyModelId]){
+			if(appCache.competencyCache[val.competencyModelId][val.competencyId].title.indexOf($scope.recordQuery) != -1)
+				return true;
+			if(appCache.modelCache[val.competencyModelId].name.indexOf($scope.recordQuery) != -1)
+				return true;
+			if(appCache.modelCache[val.competencyModelId].id.indexOf($scope.recordQuery) != -1)
+				return true;
+		}
 		
 		return false;
 	}
