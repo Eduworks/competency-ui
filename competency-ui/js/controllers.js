@@ -252,7 +252,14 @@ controller('viewController', ['$scope', '$routeParams', '$location', 'search', '
 
 			for(var type in rels){
 				for(var id in rels[type]){
-					competencyItem.getCompetency(rels[type][id], appCache.currentItem.modelId).
+					var compId = "";
+					if(rels[type][id] instanceof Object){
+						compId = rels[type][id].id;
+					}else{
+						compId = rels[type][id]
+					}
+					
+					competencyItem.getCompetency(compId, appCache.currentItem.modelId).
 					then(function(result){
 						for(var compId in result){
 							$scope.relatedCompetencies[compId] = result[compId];
@@ -521,10 +528,6 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 	}
 
 	$scope.moveRelationship = function(relationshipName, competencyId, newRelationshipName){
-		console.log(relationshipName);
-		console.log(newRelationshipName);
-		console.log(competencyId);
-
 		if(appCache.editedItem.relationships[newRelationshipName] == undefined){
 			appCache.editedItem.relationships[newRelationshipName] = [];
 		}
@@ -614,20 +617,23 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 	}
 
 	$scope.saveChanges = function(){
+		if($scope.levelType== "TorF"){
+			appCache.editedItem.levels = {":true": appCache.levelCache[":true"], ":false": appCache.levelCache[":false"]};
+		}
+		
 		if($scope.create){
 			competencyItem.createCompetency(appCache.editedItem).then(function(data){
 				var newComp = data[Object.keys(data)[0]];
 				search.clearResults(context.competency);
+				appCache.currentItem = data;
 				$scope.showView(context.competency, newComp.id, newComp.modelId);
 			}, function(error){
 				alert.setErrorMessage(error);
 			});
 		}else{
-			if($scope.levelType== "TorF"){
-				appCache.editedItem.levels = {":true": appCache.levelCache[":true"], ":false": appCache.levelCache[":false"]};
-			}
-
 			competencyItem.editCompetency(appCache.currentItemId, appCache.editedItem).then(function(data){
+				console.log(data)
+				appCache.currentItem = data;
 				$scope.showView(context.competency, data.id, data.modelId);
 			}, function(error){
 				alert.setErrorMessage(error);
@@ -637,8 +643,8 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 
 }]).
 
-controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'appCache', 'session', 'alert', 'search', 'context', 'defaultModelId', 'modelItem', 'levelItem',
-                                   function($scope, $routeParams, $modal, $q, appCache, session, alert, search, context, defaultModelId, modelItem, levelItem) {
+controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'appCache', 'session', 'alert', 'search', 'context', 'defaultModelId', 'modelItem', 'levelItem', 'guestUser',
+                                   function($scope, $routeParams, $modal, $q, appCache, session, alert, search, context, defaultModelId, modelItem, levelItem, guestUser) {
 	$scope.appCache = appCache;
 
 	$scope.defaultLevels = "TorF";
@@ -756,6 +762,10 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 		});
 		
 		addPermissionModal.result.then(function(permissionObj){
+			if(permissionObj.id == guestUser.userId){
+				alert.setErrorMessage("Cannot Give Guest User additional permissions");
+				return;
+			}
 			if(permissionObj.role == "admin"){
 				if(appCache.editedItem.accessControl.admin.indexOf(permissionObj.id) == -1){
 					var userIdx = appCache.editedItem.accessControl.user.indexOf(permissionObj.id);
@@ -899,8 +909,14 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 
 controller('permissionModalController', ['$scope', 'appCache', 'alert', 'selectedRole', 'userItem', 'recordItem',
                                          function($scope, appCache, alert, selectedRole, userItem, recordItem){
-	
+	$scope.userItem = userItem;
 	$scope.permission = {id:"", role: selectedRole};
+	
+	$scope.typeaheadDummyText = "";
+	
+	$scope.userSelected = function(item, model, label){
+		$scope.permission.id = item.id;
+	}
 	
 	$scope.cancel = function(){
 		$scope.$dismiss();

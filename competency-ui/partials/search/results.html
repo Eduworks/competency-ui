@@ -64,7 +64,8 @@
 				</span>
 				</li>
 				<li ng-repeat="result in search.results" data-id="{{result.id}}"
-					ng-include="resultTemplate()"></li>
+					ng-include="resultTemplate()"
+					ng-hide="search.resultLength == 0"></li>
 			</ul>
 
 			<div class="pagination-centered">

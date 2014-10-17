@@ -98,6 +98,9 @@ factory('search', ['$rootScope', '$location', 'appCache', 'context', 'modelItem'
 	var search = function(context){
 		if(this.query != "" && this.query != undefined){
 			if(this.prevQuery != this.query || this.prevSearchedContext != context || this.prevModels != this.model){
+				this.results = {};
+				this.resultLength = 0;
+				
 				if(this.model == "" || this.model == undefined){
 					this.model = this.ALL_MODELS;
 				}
@@ -124,10 +127,13 @@ factory('search', ['$rootScope', '$location', 'appCache', 'context', 'modelItem'
 			var mod = (context != contexts.competency ? undefined : this.model); 
 			$rootScope.showResults(context, this.query, mod);
 		}else if(context == contexts.competency){
+			this.results = {};
+			this.resultLength = 0;
 			if(this.model == "" || this.model == undefined){
 				this.model = this.ALL_MODELS;
 			}
 			var search = this;
+			
 			
 			competencyItem.getAllCompetencies(this.model).then(function(data){
 				var results = data;
@@ -362,7 +368,9 @@ factory('alert', ['$rootScope', 'errorCode',
 			case errorCode.defaultObject:
 				break
 			case errorCode.access:
-				$rootScope.goHome();
+				if(error.msg.indexOf("<read>") != -1){
+					$rootScope.goBack();
+				}
 				break;
 			case errorCode.login:
 				$rootScope.goLogin();
@@ -905,6 +913,7 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 							var slashLoc = uri.indexOf("model-");
 
 							var mId = uri.substr(slashLoc, hashLoc-slashLoc);
+
 							comp = new competency(data[compId], competencyId, mId);  
 						}else{
 							comp = new competency(data[compId], competencyId, modelId);  
@@ -1065,6 +1074,8 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 
 
 	var createCompetency = function(newData){
+		var cache = this.competencyCache;
+		
 		var deferred = $q.defer();
 
 		var importedDeferrer = $q.defer();
@@ -1100,13 +1111,15 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 					for(var idx in newData[prop][relId]){
 						obj.competencyRelationships[competencyRelationships[relId]].push(newData[prop][relId][idx].id);
 
-						if(newData[prop][relId][idx].modelId != newData.modelId){
+						if(newData[prop][relId][idx].modelId != newData.modelId && modelItem.modelCache[newData.modelId].imports.indexOf(newData[prop][relId][idx].modelId) == -1){
 							imports++;
 							modelItem.addImport(newData.modelId, newData[prop][relId][idx].modelId).then(function(data){
 								imported++;
 								if(imported == imports){
 									importedDeferrer.resolve();
 								}
+							}, function(error){
+								importedDeferrer.reject(error);
 							});
 						}
 					}
@@ -1116,7 +1129,7 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 				console.log(prop);
 			}
 		}
-
+		
 		var modelId = newData.modelId;
 		obj.modelId = modelId;
 
@@ -1136,6 +1149,8 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 				transformRequest: function(data){ return data; }
 					}
 			).success(function(data, status, headers, config){
+				cache = {};
+				
 				var result = {};
 
 				for(var id in data){
@@ -1144,11 +1159,26 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 					result[id] = newComp;
 				}
 
+				for(var id in result){
+					if(cache[result[id].modelId] == undefined){
+						cache[result[id].modelId] = {};
+						cache[result[id].modelId][result[id].id] = {}
+					}else if(cache[result[id].modelId][result[id].id] == undefined){
+						cache[result[id].modelId][result[id].id] = {}
+					}
+					
+					for(var i in result[id]){
+						cache[result[id].modelId][result[id].id][i] = result[id][i];
+					}
+				}
+				
 				deferred.resolve(result);
 
 			}).error(function(data, status, headers, config){
 				deferred.reject(data);
 			});
+		}, function(error){
+			deferred.reject(error);
 		});
 
 		return deferred.promise;
@@ -1157,9 +1187,12 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 	var editCompetency = function(competencyId, newData){
 		//TODO: Needs to invalidate cache.
 
+		var cache = this.competencyCache;
+		
 		var deferred = $q.defer(); 
 		if(competencyId == undefined || newData.modelId == undefined){
 			deferred.reject("CompetencyId or ModelId not specified");
+			return;
 		}
 
 		var obj = {sessionId: session.currentUser.sessionId};
@@ -1167,6 +1200,8 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 		obj.modelId = newData.modelId;
 
 		var importDeferrer = $q.defer();
+		var imports = 0;
+		var imported = 0;
 
 		for(var prop in newData){
 			switch(prop){
@@ -1191,23 +1226,32 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 					obj.competencyRelationships = {};
 				}
 
-				var imports = 0;
-				var imported = 0;
+				
 
 				for(var relId in newData[prop]){
 					obj.competencyRelationships[competencyRelationships[relId]] = [];
 					for(var idx in newData[prop][relId]){
-						obj.competencyRelationships[competencyRelationships[relId]].push(newData[prop][relId][idx].id);
+						if(newData[prop][relId][idx] instanceof Object){
+							obj.competencyRelationships[competencyRelationships[relId]].push(newData[prop][relId][idx].id);
 
-						if(newData[prop][relId][idx].modelId != newData.modelId){
-							imports++;
-							modelItem.addImport(newData.modelId, newData[prop][relId][idx].modelId).then(function(data){
-								imported++;
-								if(imported == imports){
-									importedDeferrer.resolve();
-								}
-							});
+							if(newData[prop][relId][idx].modelId != newData.modelId){
+								imports++;
+								modelItem.addImport(newData.modelId, newData[prop][relId][idx].modelId).then(function(data){
+									imported++;
+									if(imported == imports){
+										importDeferrer.resolve();
+									}
+								}, function(error){
+									if(error.code == "default"){
+										importDeferrer.reject("Cannot Add Relationship to Competency Outside of Default Model");
+									}
+									importDeferrer.reject(error)
+								});
+							}
+						}else if(newData[prop][relId][idx].length != 0){
+							obj.competencyRelationships[competencyRelationships[relId]].push(newData[prop][relId][idx]);
 						}
+						
 					}
 				}
 				break;
@@ -1217,16 +1261,23 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 			}
 		}
 
+		for(var relId in competencyRelationships){
+			if(obj.competencyRelationships[competencyRelationships[relId]] == undefined){
+				obj.competencyRelationships[competencyRelationships[relId]] = [];
+			}
+		}
+
+		
 		var data = new FormData();
 		data.append(dataObjectName, JSON.stringify(obj));
 
 		if(obj.competencyRelationships == undefined || imports == imported){
 			setTimeout(function(){
-				importedDeferrer.resolve();
+				importDeferrer.resolve();
 			}, 10)
 		}
 
-		importedDeferrer.promise.then(function(){
+		importDeferrer.promise.then(function(){
 			$http.post(apiURL + "update", data,
 					{
 				headers: {'Content-Type': undefined},
@@ -1235,11 +1286,23 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 			).success(function(data, status, headers, config){
 				var result = new competency(data, competencyId, newData.modelId);
 
+				for(var i in result){
+					cache[result.modelId][result.id][i] = result[i];
+				}
+				
+				for(var i in cache[result.modelId][result.id]){
+					if(result[i] == undefined){
+						delete cache[result.modelId][result.id][i];
+					}
+				}
+				
 				deferred.resolve(result);
 
 			}).error(function(data, status, headers, config){
 				deferred.reject(data);
 			});
+		}, function(error){
+			deferred.reject(error);
 		})
 
 
@@ -1279,7 +1342,12 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 		this.description = model.description;
 		this.uri = model.uri;
 		this.dateCreated = model.dateCreated;
-		this.imports = model.imports;
+		if(model.imports instanceof Array){
+			this.imports = model.imports;
+		}else{
+			this.imports = JSON.parse(model.imports);
+		}
+		
 
 		var levels = {};
 		this.levels = levels;
@@ -1872,6 +1940,38 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 					alert('error searching users');
 				});
 	}
+	
+	var searchUsersPromise = function(query){
+		var cache = this.userCache;
+		
+		var deferred = $q.defer();
+		
+		var obj = {sessionId: session.currentUser.sessionId};
+		obj.query = query;
+		
+		var data = new FormData();
+		data.append(dataObjectName, JSON.stringify(obj));
+		
+		$http.post(apiURL + "query/searchUsers", data,
+				{
+			headers: {'Content-Type': undefined},
+			transformRequest: function(data){ return data; }
+				}).success(function(data, status, headers, config){
+					var result = [];
+
+					for(var userId in data){
+						result.push(new user(data[userId], userId));
+
+						cache[userId] = result[userId];
+					}
+
+					deferred.resolve(result);
+				}).error(function(data, status, headers, config){
+					deferred.reject(error)
+				});
+		
+		return deferred.promise;
+	}
 
 	var createUser = function(userData){
 		var cache = this.userCache;
@@ -1976,6 +2076,7 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 		makeLocalUser: function(data, userId){ return new user(data, userId); },
 
 		searchUsers:searchUsers,
+		searchUsersPromise:searchUsersPromise,
 
 		createUser: createUser,
 		editUser: editUser,

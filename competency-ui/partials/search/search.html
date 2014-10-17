@@ -61,7 +61,13 @@
 						ng-hide="appCache.context != 'model' "> <i
 						class="fa fa-list" 
 						></i> View All
-					</a> 
+					</a>
+					<a class="button small secondary"
+						ng-click="search.query = ''; search.runSearch(appCache.context)"
+						ng-hide="appCache.context != 'competency' "> <i
+						class="fa fa-list" 
+						></i> View All
+					</a>  
 					<a class="button small secondary"
 						ng-click="showCreate(appCache.context);"
 						ng-hide="session.currentUser.id == session.guestUser.id"> <i

@@ -132,7 +132,7 @@ angular.module('CompetencyManager',
 	 session.loadUser().then(function(user){
 		 appCache.profileCache[user.id] = user;
 	 }, function(error){
-		 goLogin();
+		 $rootScope.goLogin();
 	 });
 	 
 	 appCache.loadCaches();

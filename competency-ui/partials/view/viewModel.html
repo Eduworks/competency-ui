@@ -10,14 +10,36 @@
 				<h4 class="subheader info-description">
 					{{appCache.currentItem.description}}</h4>
 				<p>
-					<strong>ID:</strong> <span class="info-id-entry">{{appCache.currentItem.id}}</span>
+					<strong>ID:</strong> 
+					<span class="info-id-entry">
+						{{appCache.currentItem.id}}
+					</span>
+				</p>
+				<p>
+					<strong>Privacy:</strong> 
+					<span>
+						{{(appCache.currentItem.accessControl.type ? appCache.currentItem.accessControl.type : "") | capitalize}}
+					</span>
 				</p>
 				<hr>
 				<p>
-					<strong>Default Levels:</strong> <br /> <span
+					<strong>Default Levels:</strong> 
+					<br /> 
+					<span
 						ng-repeat="(i,levelObj) in appCache.currentItem.levels | orderByObj:'rank'"
 						title="[{{levelObj.id}}] (Rank {{levelObj.rank}})">
 						{{levelObj.name}} - {{levelObj.description}} <br />
+					</span>
+
+				</p>
+				<hr ng-hide="appCache.currentItem.imports.length == 0">
+				<p ng-hide="appCache.currentItem.imports.length == 0">
+					<strong>Imported Models:</strong> 
+					<br /> 
+					<span
+						ng-repeat="modelId in appCache.currentItem.imports"
+						title="{{modelId}}">
+						<a ng-click="showView('model', modelId)">{{appCache.modelCache[modelId].name}}</a><span ng-hide="$last">,</span>
 					</span>
 
 				</p>
