@@ -321,13 +321,15 @@ controller('viewController', ['$scope', '$routeParams', '$location', 'search', '
 	});
 
 	$scope.changeViewable = function(change){
-		if($scope.viewRecordStart + change >= 0 && $scope.viewRecordStart + change <= $scope.allRecords.length){
+		$scope.viewRecordLength = parseInt($scope.viewRecordLength);
+		
+		if($scope.viewRecordStart + parseInt(change) >= 0 && $scope.viewRecordStart + parseInt(change) <= $scope.allRecords.length){
 			$scope.viewableRecords = [];
 
-			$scope.viewRecordStart = $scope.viewRecordStart + change;
+			$scope.viewRecordStart = parseInt($scope.viewRecordStart) + parseInt(change);
 			var i = 0;
 			for(var j in $scope.allRecords){
-				if(i >= $scope.viewRecordStart && i < $scope.viewRecordStart + $scope.viewRecordLength){
+				if(i >= $scope.viewRecordStart && i < $scope.viewRecordStart + parseInt($scope.viewRecordLength)){
 					$scope.viewableRecords.push($scope.allRecords[j]) 
 				}
 				i++;
@@ -1202,8 +1204,8 @@ controller('createLevelModalController', ['$scope', 'appCache', 'context', 'aler
 
 }]).
 
-controller('recordEditController', ['$scope', '$routeParams', '$location', '$q', 'appCache', 'session', 'alert', 'context', 'recordItem', 'competencyItem', 'newItem', 'evidenceValueType', 'validationItem', 'userItem',
-                                    function($scope, $routeParams, $location, $q, appCache, session, alert, context, recordItem,competencyItem, newItem, evidenceValueType, validationItem, userItem) {
+controller('recordEditController', ['$scope', '$routeParams', '$location', '$q', 'appCache', 'session', 'alert', 'context', 'recordItem', 'competencyItem', 'newItem', 'evidenceValueType', 'validationItem', 'userItem', 'levelItem',
+                                    function($scope, $routeParams, $location, $q, appCache, session, alert, context, recordItem,competencyItem, newItem, evidenceValueType, validationItem, userItem, levelItem) {
 	$scope.appCache = appCache;
 	$scope.competencyItem = competencyItem;
 
@@ -1252,9 +1254,20 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 		getUser($routeParams.userId);
 
 		appCache.startEdit(context.record, $routeParams.recordId, $routeParams.userId).then(function(){
-			$scope.competencyTitle = appCache.competencyCache[appCache.currentItem.competencyModelId][appCache.currentItem.competencyId].title;
+			appCache.editedItem.getCompetency().then(function(competency){
+				$scope.competencyTitle = appCache.competencyCache[appCache.currentItem.competencyModelId][appCache.currentItem.competencyId].title;
+				angular.element('#no_level_message').remove();        
+				var levId = appCache.editedItem.levelId 
+				appCache.editedItem.levelId = "";
+				setTimeout(function(){
+					appCache.editedItem.levelId = competency[appCache.editedItem.competencyId].levels[levId].id;
+				}, 5)
+				
+			})
 
-			angular.element('#no_level_message').remove();        
+			appCache.currentItem.getValidations();
+			
+			
 		});
 		$scope.create = false;
 	}else{
@@ -1308,7 +1321,26 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 
 		angular.element('#no_level_message').remove();  
 
-		appCache.editedItem.levelId =appCache.competencyCache[appCache.editedItem.competencyModelId][appCache.editedItem.competencyId].levelIds[0];
+		var rank = undefined;
+		
+		for(var idx in item.levelIds){
+			levelItem.getLevel(item.modelId, item.levelIds[idx]).then(function(level){
+				if(rank == undefined){
+					rank = level.rank;
+					appCache.editedItem.levelId = level.id;
+				}else if(rank > level.rank){
+					rank = level.rank;
+					appCache.editedItem.levelId = level.id;
+				}
+			});
+		};
+	}
+	
+	$scope.clearCompetency = function(){
+		if(appCache.editedItem.competencyId != ""){
+			appCache.editedItem.competencyId = "";
+			appCache.editedItem.levelId = "";
+		}
 	}
 
 	$scope.addValidation = function(){
@@ -1433,7 +1465,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 						alert.setErrorMessage(error);
 						
 						if(defer)
-							deferred.rekect();
+							deferred.reject();
 					})
 				}
 			}

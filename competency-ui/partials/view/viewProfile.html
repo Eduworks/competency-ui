@@ -19,18 +19,22 @@
 				</p>
 				<hr>
 				<div>
-					<h4 style="float: left;">
-						<span> Competency Records: </span>
+					<h4 style="float:left;">
+						<span> 
+							Competency Records: 
+						</span>
 					</h4>
+					
+					
 
 					<button class="secondary small"
-						style='float: right; margin-bottom: 0px;'
+						style='float: right; margin-bottom: 0px; clear:right;'
 						ng-click="showCreate('record')"
 						ng-hide="session.currentUser.id == session.guestUser.id">
 						<i class="fa fa-plus"></i> Add Record
 					</button>
 
-					<input type="text" style="width: 50%; clear: both;"
+					<input type="text" style="width: 50%; clear: both; display: inline;"
 						placeholder="Search {{appCache.currentItem.firstName}}'s Records"
 						ng-hide="appCache.loading || objectLength(appCache.currentItem.records) <= viewRecordLength"
 						ng-model="recordQuery"></input> <br style="clear: both;"
@@ -58,12 +62,13 @@
 
 				<div class="pagination-centered">
 					<ul class="pagination"
-						ng-hide="appCache.loading || objectLength(appCache.currentItem.records) <= viewRecordLength || recordQuery != ''">
-						<li class="arrow" ng-class="{'unavailable':viewRecordStart ==  0}"
+						ng-hide="appCache.loading || objectLength(appCache.currentItem.records) <= viewRecordLength || recordQuery != '' ">
+						<li class="arrow"
+							ng-hide="viewRecordStart ==  0"
 							ng-click="changeViewable(-viewRecordLength)"><a>«</a></li>
 						<li ng-hide="viewRecordStart <= viewRecordLength"
 							ng-click="changeViewable(-viewRecordStart)"><a>1</a></li>
-						<li ng-hide="viewRecordStart <= viewRecordLength"
+						<li ng-hide="viewRecordStart <= viewRecordLength || allRecords.length <= 3*viewRecordLength"
 							class="unavailable"><a>…</a></li>
 						<li ng-click="changeViewable(-viewRecordLength)"
 							ng-hide="viewRecordStart < viewRecordLength"><a>{{mathCeil(viewRecordStart/viewRecordLength)}}</a>
@@ -71,26 +76,37 @@
 						<li class="current"><a>{{mathCeil(viewRecordStart/viewRecordLength)+1}}</a>
 						</li>
 						<li ng-click="changeViewable(viewRecordLength)"
-							ng-hide="(viewRecordStart + viewRecordLength) > allRecords.length">
+							ng-hide="(viewRecordStart + viewRecordLength) >= allRecords.length">
 							<a>{{mathCeil(viewRecordStart/viewRecordLength)+2}}</a>
 						</li>
 						<li
-							ng-hide="mathCeil(objectLength(appCache.currentItem.records)/ viewRecordLength) < viewRecordLength"
+							ng-hide="mathCeil(objectLength(appCache.currentItem.records)/ viewRecordLength) < viewRecordLength || 
+							(viewRecordStart + viewRecordLength) >= allRecords.length || (viewRecordStart + 2*viewRecordLength) >= allRecords.length ||
+							allRecords.length <= 3*viewRecordLength"
 							class="unavailable"><a>…</a></li>
 						<li
-							ng-hide="mathCeil(objectLength(appCache.currentItem.records)/ viewRecordLength) < viewRecordLength">
+							ng-click="changeViewable(allRecords.length - viewRecordStart - viewRecordLength)"
+							ng-hide="mathCeil(objectLength(appCache.currentItem.records)/ viewRecordLength) < viewRecordLength || 
+							(viewRecordStart + viewRecordLength) >= allRecords.length || (viewRecordStart + 2*viewRecordLength) >= allRecords.length">
 							<a>{{mathCeil(objectLength(appCache.currentItem.records)/
 								3)}} </a>
 						</li>
 						<li class="arrow"
+							ng-hide="(viewRecordStart + viewRecordLength) >= allRecords.length"
 							ng-class="{'unavailable':viewRecordStart + viewRecordLength > allRecords.length}"
 							ng-click="changeViewable(viewRecordLength)"><a>»</a></li>
 					</ul>
 				</div>
-
-				<hr
-					ng-hide="appCache.loading || objectLength(appCache.currentItem.records) <= viewRecordLength || recordQuery != ''" />
-
+				
+				<hr ng-hide="appCache.loading || objectLength(appCache.currentItem.records) <= viewRecordLength || recordQuery != ''" />
+	
+				<span style="float:right;">
+					Viewable Records: 
+					<select style="width:75px;" ng-model="viewRecordLength" ng-change="changeViewable(-viewRecordStart)">
+						<option value="3">3</option>
+						<option value="10">10</option>
+					</select> 
+				</span>
 
 				<button class="secondary small"
 					ng-click="showEdit(appCache.context, appCache.currentItemId)"

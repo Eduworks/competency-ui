@@ -794,7 +794,7 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 		var levels = this.levels;
 		for(var i in competency[":competencyLevels"]){
 			var levelId = competency[":competencyLevels"][i];
-			levels[levelId] = {};
+			levels[levelId] = {id:""};
 
 			levelItem.getLevel(modelId, levelId).then(function(level){
 				for(var i in level){
@@ -2109,13 +2109,6 @@ factory('levelItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 			this.levelCache[levelId] = {};
 			levelCacheDefer[levelId] = [];
 		}else{
-			if(levelId == ":true" || levelId == ":false"){
-				setTimeout(function(){
-					deferred.resolve(cache[levelId]);  
-				}, 10)
-
-				return deferred.promise;
-			}
 			if (levelCacheDefer[levelId] != undefined)
 			{
 				levelCacheDefer[levelId].push(deferred);
@@ -2235,34 +2228,52 @@ factory('recordItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'levelItem', '
 		this.id = recordId;
 		this.userId = userId;
 
-		this.competencyModelId = data[":recordCompetencyModel"] == undefined ? 'model-default' : data[":recordCompetencyModel"][0];
-		this.competencyId = data[':recordCompetency'][0];
+		var competencyModelId = data[":recordCompetencyModel"] == undefined ? 'model-default' : data[":recordCompetencyModel"][0];
+		this.competencyModelId = competencyModelId;
+		
+		var competencyId = data[':recordCompetency'][0];
+		this.competencyId = competencyId;
 
-		competencyItem.getCompetency(this.competencyId, this.competencyModelId);
-		modelItem.getAllLevels(this.competencyModelId);
+		//competencyItem.getCompetency(this.competencyId, this.competencyModelId);
+		//modelItem.getAllLevels(this.competencyModelId);
 
 		this.levelId = data[':recordLevel'][0];
 
-		this.validationIds = data[":recordValidation"] ? data[":recordValidation"] : [];
+		var validationIds = data[":recordValidation"] ? data[":recordValidation"] : [];
+		this.validationIds = validationIds;
 
 		var validations = {};
 		this.validations = validations;
 
-		for(var i in this.validationIds){
-			this.validations[this.validationIds[i]] = {};
-			validationItem.getValidation(this.validationIds[i], this.id, this.userId).then(
-					function(validation){
-						for(var i in validation){
-							validations[validation.id][i] = validation[i];
-						}
-					}, function(error){
-						console.log(error);
-					}, function(tempValidation){
-						for(var i in tempValidation){
-							validations[tempValidation.id][i] = tempValidation[i];
-						}
-					});
+		this.getCompetency = function(){
+			var deferred = $q.defer();
+			competencyItem.getCompetency(competencyId, competencyModelId).then(function(competency){
+				deferred.resolve(competency)
+			}, function(error){
+				alert.setErrorMessage(error);
+			});
+			
+			return deferred.promise;
 		}
+		
+		this.getValidations = function(){
+			for(var i in validationIds){
+				validations[validationIds[i]] = {};
+				validationItem.getValidation(validationIds[i], recordId, userId).then(
+						function(validation){
+							for(var i in validation){
+								validations[validation.id][i] = validation[i];
+							}
+						}, function(error){
+							console.log(error);
+						}, function(tempValidation){
+							for(var i in tempValidation){
+								validations[tempValidation.id][i] = tempValidation[i];
+							}
+						});
+			}
+		}
+		
 
 		this.confidence = data[":recordConfidence"] == undefined ? "N/A" : data[':recordConfidence'][0];
 

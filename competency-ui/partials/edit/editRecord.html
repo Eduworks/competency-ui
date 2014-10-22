@@ -40,23 +40,25 @@
 
 			<div class="row">
 				<div class="small-8 columns">
-					<label ng-hide=""> Competency <small>required</small> <input
+					<label ng-hide=""> Competency <small>required</small> 
+					<input
 						type="text" ng-model="competencyTitle"
 						typeahead="comp.title as comp.title + ' (' + comp.id + ')' for comp in competencyItem.searchCompetencyPromise($viewValue, appCache.editedItem.competencyModelId)"
 						typeahead-min-length="2" typeahead-loading="typeaheadSearching"
 						typeahead-on-select="competencySelected($item, $model, $label)"
 						typeahead-wait-ms="300" placeholder="Enter Competency Title or ID"
-						ng-disabled="!create"></input>
+						ng-disabled="!create" ng-change="clearCompetency()"></input>
 					</label>
 				</div>
 			</div>
 
 			<div class="row">
 				<div class="small-8 columns">
-					<label> Level <small>required</small> <select
+					<label> Level <small>required</small> 
+					<select id="level_select"
 						ng-model="appCache.editedItem.levelId" ng-disabled="!create">
-							<option value="{{id}}"
-								ng-repeat="(id, levelObj) in appCache.competencyCache[appCache.editedItem.competencyModelId][appCache.editedItem.competencyId].levels"
+							<option value="{{levelObj.id}}"
+								ng-repeat="(id, levelObj) in appCache.competencyCache[appCache.editedItem.competencyModelId][appCache.editedItem.competencyId].levels | orderByObj:'rank'"
 								ng-selected="id == appCache.editedItem.levelId">
 								{{levelObj.name + ' (Rank: ' + levelObj.rank + ')'}}</option>
 							<option id='no_level_message' value=''>Select a
