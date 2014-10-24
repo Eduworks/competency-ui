@@ -34,7 +34,10 @@
 					
 				<div>
 					<h5 style='font-weight:bold;'>Competencies:</h5>
-					<ul>
+					<div ng-hide="objectLength(competencies) > 0">
+						No Competencies Defined Yet
+					</div>
+					<ul ng-hide="objectLength(competencies) == 0">
 						<li ng-repeat="(i, competency) in competencies | orderByObj:'title'" style='list-style:none;'>
 							<a ng-click="toggleDetails(competency.id)" id="{{fixId(competency.id)}}" title="View More">{{competency.title}}</a>
 							<span ng-hide="competency.description == '' || competency.description == undefined">
