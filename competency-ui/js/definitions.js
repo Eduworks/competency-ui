@@ -4,6 +4,7 @@ angular.module('CompetencyManager.definitions', []).
 value('version', '0.2').
 
 value('apiURL', 'http://localhost:9722/api/custom/competency/').
+
 value('dataObjectName', 'competency').
 
 value('defaultModelId', 'model-default').
@@ -23,3 +24,4 @@ value('errorCode', {
 	'access': 'access',
 	'sessionExpired': 'expired',
 });
+

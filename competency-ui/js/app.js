@@ -15,7 +15,6 @@ angular.module('CompetencyManager',
  ]).
  config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
 	 $(document).foundation();
-	 $locationProvider.reload
 	 
 
 	 $routeProvider.when('/login', 
@@ -121,12 +120,20 @@ angular.module('CompetencyManager',
 		 controller: 'recordEditController'
 			 }
 	 );
+	 $routeProvider.when('/model-:partialModelId',
+			 {
+		 templateUrl: 'partials/public/viewPublicModel.html',
+		 controller: 'viewPublicModelController'
+			 }
+	 );
 
 	 $routeProvider.otherwise({redirectTo: '/login'});
-	 //$locationProvider.html5Mode(true);
+	 $locationProvider.html5Mode(true);
 
  }]).run(['$rootScope', '$location', '$window', 'appCache', 'session', 'alert', 'search', 'context', '$routeParams', 'modelItem',
           function($rootScope, $location, $window, appCache, session, alert, search, contexts, $routeParams, modelItem){
+	 
+	 
 	 $rootScope.session = session;
 	 
 	 session.loadUser().then(function(user){
@@ -150,10 +157,20 @@ angular.module('CompetencyManager',
 		 modelItem.getAllModels();
 	 }
 
+	 $rootScope.showPublicModelPage = function(modelId){
+		 alert.clearMessages();
+		 $location.path("/"+modelId)
+	 }
+	 
 	 $rootScope.goLogin = function(){
 		 alert.clearMessages();
 		 
-		 $location.path("/login");
+		 if(session.currentUser.sessionId == undefined){
+			 $location.path("/login");
+		 }else{
+			 $rootScope.goHome()
+		 }
+		 
 		 $location.search({})
 	 }
 

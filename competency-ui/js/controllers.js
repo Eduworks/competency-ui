@@ -3,8 +3,8 @@
 /* Controllers */
 
 angular.module('CompetencyManager.controllers', []).
-controller('loginController', ['$scope', '$location', '$rootScope', 'session', 'search', 'appCache', 'modelItem',
-                               function($scope, $location, $rootScope, session, search, appCache, modelItem) {
+controller('loginController', ['$scope', '$rootScope', 'session', 'search', 'appCache', 'modelItem',
+                               function($scope, $rootScope, session, search, appCache, modelItem) {
 	$scope.session = session;
 	search.clearAll();
 	
@@ -66,8 +66,8 @@ controller('alertController', ['$scope', 'appCache', 'alert', function($scope, a
 	
 }]).
 
-controller('searchController', ['$scope', '$routeParams', '$location', 'search', 'appCache', 'session', 'context',
-                                function($scope, $routeParams, $location, search, appCache, session, context) {
+controller('searchController', ['$scope', '$routeParams', 'search', 'appCache', 'session', 'context',
+                                function($scope, $routeParams, search, appCache, session, context) {
 	$scope.search = search;
 	$scope.appCache = appCache;
 	$scope.contexts = context;
@@ -214,10 +214,73 @@ controller('resultsController', ['$scope', '$routeParams', '$location', 'search'
 	
 }]).
 
+controller('viewAllPublicModelsController', ['$scope', '$routeParams', 'appCache', 'context', 'session', 'alert', 'modelItem', 'competencyItem',
+                                         function($scope, $routeParams, appCache,contexts, session, alert, modelItem, competencyItem) {
+	$scope.appCache = appCache;
+	
+	$scope.models = {};
+	
+	modelItem.getAllModels().then(function(result){
+		$scope.models = result;
+	})
+}]).
 
+controller('viewPublicModelController', ['$scope', '$location', '$routeParams', 'appCache', 'context', 'session', 'alert', 'modelItem', 'competencyItem',
+                                         function($scope, $location, $routeParams, appCache,contexts, session, alert, modelItem, competencyItem) {
+	$scope.appCache = appCache;
+	
+	$scope.competencies = {}
+	$scope.hideDetails = {};
+	
+	appCache.setCurrentItem(contexts.model, 'model-'+$routeParams.partialModelId, undefined).
+	then(function(result){
+	}, function(error){
+		alert.setErrorMessage(error);
+	});
+	
+	competencyItem.getAllCompetencies('model-'+$routeParams.partialModelId).
+	then(function(result){
+		$scope.competencies = result;
+		for(var id in result){
+			$scope.hideDetails[id] = true;
+		}
+		
+		if($location.hash() != undefined && $location.hash() != ""){
+			if($scope.competencies[":"+$location.hash()] != undefined){
+				$scope.toggleDetails(":"+$location.hash())
+			}else{
+				alert.setWarningMessage("Could not find a Competency in this model with the ID (:"+$location.hash()+")")
+			}
+			
+		}
+		
+	}, function(error){
+		
+	})
+	
+	$scope.toggleDetails = function(id){
+		$scope.hideDetails[id] = !$scope.hideDetails[id];
+	}
+	
+	$scope.goBack = function(){
+		$location.hash("")
+		if(session.currentUser.sessionId == undefined || session.currentUser.sessionId == ""){
+			$scope.goLogin();
+		}else{
+			$scope.$parent.goBack();
+		}
+		
+	}
+	
+	$scope.fixId = function(id){
+		var fix = id.replace(':', "#");
+		
+		return fix;
+	}
+}]).
 
-controller('viewController', ['$scope', '$routeParams', '$location', 'search', 'appCache', 'modelItem', 'competencyItem', 'context', 'session', 'alert',
-                              function($scope, $routeParams, $location, search, appCache, modelItem, competencyItem, contexts, session, alert) {
+controller('viewController', ['$scope', '$routeParams', 'search', 'appCache', 'modelItem', 'competencyItem', 'context', 'session', 'alert',
+                              function($scope, $routeParams, search, appCache, modelItem, competencyItem, contexts, session, alert) {
 	$scope.appCache = appCache;
 	$scope.search = search;
 	$scope.contexts = contexts;
@@ -1450,7 +1513,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 						alert.setErrorMessage(error);
 						
 						if(defer)
-							deferred.reject();
+							deferred.reject(error);
 					})
 				}else{
 					var val = appCache.editedItem.validations[$scope.editingValidation];
@@ -1465,7 +1528,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 						alert.setErrorMessage(error);
 						
 						if(defer)
-							deferred.reject();
+							deferred.reject(errror);
 					})
 				}
 			}

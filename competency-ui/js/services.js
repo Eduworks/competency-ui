@@ -78,8 +78,8 @@ value('competencyRelationships', {
 	"Related To": ":related",
 }).
 
-factory('search', ['$rootScope', '$location', 'appCache', 'context', 'modelItem', 'competencyItem', 'userItem', 'alert',
-                   function($rootScope, $location, appCache, contexts, modelItem, competencyItem, userItem, alert){
+factory('search', ['$rootScope', 'appCache', 'context', 'modelItem', 'competencyItem', 'userItem', 'alert',
+                   function($rootScope, appCache, contexts, modelItem, competencyItem, userItem, alert){
 	
 	var ALL_MODELS = ["all"];
 
@@ -780,6 +780,7 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 		this.id = competencyId;
 		this.modelId = modelId;
 		this.title = competency[":competencyTitle"][0];
+		this.uri = competency.uri;
 
 		this.descriptions = [];
 		for(var i in competency[":competencyDescription"]){
