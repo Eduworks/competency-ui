@@ -1,7 +1,7 @@
 // Definitions of important values for the Competency Manager
 angular.module('CompetencyManager.definitions', []).
 
-value('version', '0.2').
+value('version', '0.3').
 
 value('apiURL', 'http://localhost:9722/api/custom/competency/').
 

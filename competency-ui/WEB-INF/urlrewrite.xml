@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE urlrewrite PUBLIC "-//tuckey.org//DTD UrlRewrite 4.0//EN"
+        "http://www.tuckey.org/res/dtds/urlrewrite5.0.dtd">
+
+<urlrewrite>
+        <rule match-type="wildcard">
+                <from>/home</from>
+                <to>/index.html</to>
+        </rule>
+        <rule match-type="wildcard">
+                <from>/login</from>
+                <to>/index.html</to>
+        </rule>
+        <rule match-type="wildcard">
+                <from>/search/*</from>
+                <to>/index.html</to>
+        </rule>
+        <rule match-type="wildcard">
+                <from>/view/**</from>
+                <to>/index.html</to>
+        </rule>
+        <rule match-type="wildcard">
+                <from>/create/**</from>
+                <to>/index.html</to>
+        </rule>
+        <rule match-type="wildcard">
+                <from>/results/**</from>
+                <to>/index.html</to>
+        </rule>
+        <rule match-type="wildcard">
+                <from>/edit/**</from>
+                <to>/index.html</to>
+        </rule>
+        <rule match-type="wildcard">
+                <from>/model-*</from>
+                <to>/index.html</to>
+        </rule>
+</urlrewrite>

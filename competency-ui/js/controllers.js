@@ -760,17 +760,17 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 			$scope.goHome();
 		}
 		appCache.startEdit(context.model, $routeParams.modelId).then(function(){
-			$scope.selectedPermission.admin = appCache.currentItem.accessControl.admin.length > 0 ? appCache.currentItem.accessControl.admin[0] : "";
-			$scope.selectedPermission.user = appCache.currentItem.accessControl.user.length > 0 ? appCache.currentItem.accessControl.user[0] : "";
-			$scope.selectedPermission.agent = appCache.currentItem.accessControl.agent.length > 0 ? appCache.currentItem.accessControl.agent[0] : "";
+			$scope.selectedPermission.admin = appCache.editedItem.accessControl.admin.length > 0 ? appCache.editedItem.accessControl.admin[0] : "";
+			$scope.selectedPermission.user = appCache.editedItem.accessControl.user.length > 0 ? appCache.editedItem.accessControl.user[0] : "";
+			$scope.selectedPermission.agent = appCache.editedItem.accessControl.agent.length > 0 ? appCache.editedItem.accessControl.agent[0] : "";
 		});
 
 		$scope.modelId = $routeParams.modelId;
 		$scope.create = false;
 	}else{
 		appCache.startCreate(context.model);
-		appCache.currentItem.accessControl.admin.push(session.currentUser.id);
-		$scope.selectedPermission.admin = appCache.currentItem.accessControl.admin[0];
+		appCache.editedItem.accessControl.admin.push(session.currentUser.id);
+		$scope.selectedPermission.admin = appCache.editedItem.accessControl.admin[0];
 		
 		$scope.create = true;
 	}
