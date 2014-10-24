@@ -769,7 +769,10 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 		$scope.create = false;
 	}else{
 		appCache.startCreate(context.model);
-		appCache.editedItem.accessControl.admin.push(session.currentUser.id);
+		
+		if(appCache.editedItem.accessControl.admin.indexOf(session.currentUser.id) == -1)
+			appCache.editedItem.accessControl.admin.push(session.currentUser.id);
+		
 		$scope.selectedPermission.admin = appCache.editedItem.accessControl.admin[0];
 		
 		$scope.create = true;
