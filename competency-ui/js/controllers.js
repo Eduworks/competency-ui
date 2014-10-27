@@ -86,10 +86,6 @@ controller('searchController', ['$scope', '$routeParams', 'search', 'appCache', 
 			$scope.goHome();
 		}
 	} 
-	
-	if(appCache.context == context.competency){
-		$scope.searchBarMessage = "Leave Blank to View All Competencies in the Selected Model(s)"
-	}
 
 }]).
 
@@ -174,8 +170,10 @@ controller('resultsController', ['$scope', '$routeParams', '$location', 'search'
 				}
 			}else if(appCache.context == contexts.competency){
 				search.runSearch(appCache.context);
+			}else if(appCache.context == contexts.profile){
+				search.viewAllUsers();
 			}else{
-				$scope.showSearch();
+				$scope.showSearch(contexts.model);
 			}
 		}
 
@@ -293,6 +291,7 @@ controller('viewController', ['$scope', '$routeParams', 'search', 'appCache', 'm
 	$scope.allRecords = [];
 
 	$scope.recordQuery = "";
+	$scope.titleContainerWidth = 0;
 	
 	$scope.filterDescription = function(description){
 		if(description.text != undefined){
@@ -352,6 +351,17 @@ controller('viewController', ['$scope', '$routeParams', 'search', 'appCache', 'm
 				$scope.allRecords.push(appCache.currentItem.records[id]);
 				i++;
 			}
+			
+			setTimeout(function(){
+				$scope.titleContainerWidth = $('#recordContainer').first().width() - $("#competencyText").first().width() - $("#editLink").first().width() - 5;
+				
+				$(window).resize(function(){
+					$scope.$apply(function(){
+						$scope.titleContainerWidth = $('#recordContainer').first().width() - $("#competencyText").first().width() - $("#editLink").first().width() - 5;
+					});
+				})
+			}, 100)
+			
 			break;
 		}
 	}, function(error){
@@ -379,6 +389,16 @@ controller('viewController', ['$scope', '$routeParams', 'search', 'appCache', 'm
 				$scope.allRecords.push(appCache.currentItem.records[id]);
 				i++;
 			}
+			
+			setTimeout(function(){
+				$scope.titleContainerWidth = $('#recordContainer').first().width() - $("#competencyText").first().width() - $("#editLink").first().width() - 5;
+				
+				$(window).resize(function(){
+					$scope.$apply(function(){
+						$scope.titleContainerWidth = $('#recordContainer').first().width() - $("#competencyText").first().width() - $("#editLink").first().width() - 5;
+					});
+				})
+			}, 100)
 			break;
 		}
 	});
@@ -429,6 +449,8 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 	$scope.relatedCompetencies = {};
 
 	$scope.selectableModels = {};
+	
+	$scope.saving = false;
 	
 	modelItem.getAllModels().then(function(allModels){
 		for(var modelId in allModels){
@@ -592,17 +614,19 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 		}
 	}
 
-	$scope.moveRelationship = function(relationshipName, competencyId, newRelationshipName){
+	$scope.moveRelationship = function(relationshipName, competency, newRelationshipName){
 		if(appCache.editedItem.relationships[newRelationshipName] == undefined){
 			appCache.editedItem.relationships[newRelationshipName] = [];
 		}
-		appCache.editedItem.relationships[newRelationshipName].push(competencyId);
+		appCache.editedItem.relationships[newRelationshipName].push(competency);
 
-		if(competencyId != ""){
-			$scope.typeaheadDummy[newRelationshipName].push($scope.relatedCompetencies[competencyId].title);
+		if(competency.id != undefined){
+			$scope.typeaheadDummy[newRelationshipName].push($scope.relatedCompetencies[competency.id].title);
+		}else if(competency != ""){
+			$scope.typeaheadDummy[newRelationshipName].push($scope.relatedCompetencies[competency].title);
 		}
 
-		var index = appCache.editedItem.relationships[relationshipName].indexOf(competencyId)
+		var index = appCache.editedItem.relationships[relationshipName].indexOf(competency)
 
 		appCache.editedItem.relationships[relationshipName].splice(index, 1);
 		$scope.typeaheadDummy[relationshipName].splice(index, 1);
@@ -682,6 +706,12 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 	}
 
 	$scope.saveChanges = function(){
+		if($scope.saving){
+			return;
+		}else{
+			$scope.saving = true;
+		}
+		
 		if($scope.levelType== "TorF"){
 			appCache.editedItem.levels = {":true": appCache.levelCache[":true"], ":false": appCache.levelCache[":false"]};
 		}
@@ -691,16 +721,20 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 				var newComp = data[Object.keys(data)[0]];
 				search.clearResults(context.competency);
 				appCache.currentItem = data;
+				$scope.saving = false;
 				$scope.showView(context.competency, newComp.id, newComp.modelId);
 			}, function(error){
+				$scope.saving = false;
 				alert.setErrorMessage(error);
 			});
 		}else{
 			competencyItem.editCompetency(appCache.currentItemId, appCache.editedItem).then(function(data){
 				console.log(data)
 				appCache.currentItem = data;
+				$scope.saving = false;
 				$scope.showView(context.competency, data.id, data.modelId);
 			}, function(error){
+				$scope.saving = false;
 				alert.setErrorMessage(error);
 			})
 		}
@@ -1290,6 +1324,8 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 
 	var createdValidationsCount = 0;
 
+	$scope.savingRecord = false;
+	
 	var user = {};
 	$scope.user = user;
 	
@@ -1325,9 +1361,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 				angular.element('#no_level_message').remove();        
 				var levId = appCache.editedItem.levelId 
 				appCache.editedItem.levelId = "";
-				setTimeout(function(){
-					appCache.editedItem.levelId = competency[appCache.editedItem.competencyId].levels[levId].id;
-				}, 5)
+
 				
 			})
 
@@ -1353,19 +1387,29 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 	}
 
 	$scope.saveRecord = function(){
+		if($scope.savingRecord){
+			return;
+		}else{
+			$scope.savingRecord = true;
+		}
+		
 		var saveRecord = function(){
 			if($scope.create){
 				recordItem.createRecord(user.id, appCache.editedItem).then(function(newRecord){
 					$location.$$search = {};
 					$scope.showView('profile', user.id);
+					$scope.savingRecord = false;
 				}, function(error){
-					alert.setErrorMessage(error)
+					alert.setErrorMessage(error);
+					$scope.savingRecord = false;
 				})
 			}else{
 				recordItem.editRecord(user.id, appCache.editedItem.id, appCache.editedItem).then(function(updatedRecord){
 					$scope.showView('profile', user.id);
+					$scope.savingRecord = false;
 				}, function(error){
-					alert.setErrorMessage(error)
+					alert.setErrorMessage(error);
+					$scope.savingRecord = false;
 				})
 			}
 		}
@@ -1474,12 +1518,32 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 			deferred = $q.defer();
 		}
 		
+		var reject = false;
+		
 		if($scope.create){
 			if($scope.editingValidation == undefined){
-				var addValidation = function(){
-					appCache.editedItem.validations[createdValidationsCount++] = $scope.newValidation;
-
-					$scope.newValidation = undefined;
+				var addValidation = undefined;
+				
+				if($scope.newValidation.confidence == "" || $scope.newValidation.confidence == undefined){
+					addValidation = function(){
+						var msg = "Validation Confidence cannot be empty!";
+						if(defer){
+							setTimeout(function(){
+								deferred.reject(msg)
+							}, 5)
+						}else{
+							alert.setErrorMessage(msg);
+						}
+						
+					}
+					
+					reject = true;
+				}else{
+					addValidation = function(){
+						appCache.editedItem.validations[createdValidationsCount++] = $scope.newValidation;
+	
+						$scope.newValidation = undefined;
+					}
 				}
 				
 				if($scope.newEvidence != undefined){
@@ -1495,7 +1559,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 				$scope.editingValidation = undefined;
 			}
 			
-			if(defer){
+			if(defer && !reject){
 				setTimeout(function(){
 					deferred.resolve()
 				}, 10)
@@ -1518,7 +1582,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 						if(defer)
 							deferred.reject(error);
 					})
-				}else{
+				}else if(appCache.editedItem.validations[$scope.editingValidation].confidence != "" && appCache.editedItem.validations[$scope.editingValidation].confidence != undefined){
 					var val = appCache.editedItem.validations[$scope.editingValidation];
 					validationItem.updateValidationConfidence(user.id, $routeParams.recordId, val.id, val.confidence).then(function(editedValidation){
 						appCache.editedItem.validations[val.id] = editedValidation;
@@ -1531,18 +1595,26 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 						alert.setErrorMessage(error);
 						
 						if(defer)
-							deferred.reject(errror);
+							deferred.reject(error);
 					})
+				}else{
+					alert.setErrorMessage("Validation Confidence cannot be empty!")
 				}
 			}
 			
 			if($scope.newEvidence != undefined){
 				$scope.saveAddEvidence(true).then(function(){
 					saveValidation();
+				}, function(error){
+					if(defer)
+						deferred.reject(error);
 				})
 			}else if($scope.editingEvidence != undefined){
 				$scope.saveEditEvidence(true).then(function(){
 					saveValidation();
+				}, function(error){
+					if(defer)
+						deferred.reject(error);
 				});
 			}else{
 				saveValidation();
@@ -1699,9 +1771,27 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 			deferred = $q.defer();
 		}
 		
-		// Call UpdateEvidence
 		var editingValidation = $scope.editingValidation;
 		var evidenceId = $scope.editingEvidence;
+		
+		var evidence = appCache.editedItem.validations[editingValidation].evidences[evidenceId]
+		
+		if(evidence.type == undefined || evidence.type == ""){
+			var msg = "Evidence Type cannot be left empty!";
+			if(defer){
+				setTimeout(function(){
+					deferred.reject(msg);
+				}, 5)
+				
+				return deferred.promise;
+			}else{
+				alert.setErrorMessage(msg);
+				
+				return;
+			}
+		}
+		
+		
 
 		validationItem.updateEvidence(appCache.editedItem.validations[editingValidation].evidences[evidenceId], user.id, evidenceId).then(function(evidence){
 			appCache.editedItem.validations[editingValidation].evidences[evidenceId] = evidence;

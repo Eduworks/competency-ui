@@ -25,7 +25,7 @@
 						</span>
 					</h4>
 					
-					
+					{{test}}
 
 					<button class="secondary small"
 						style='float: right; margin-bottom: 0px; clear:right;'
@@ -49,7 +49,8 @@
 						ng-hide="appCache.loading || objectLength(viewableRecords) != 0">
 						This user has no competency records yet..</div>
 
-					<p style="margin-top: 5px;"
+					<p id="recordContainer"
+						style="margin-top: 5px;"
 						ng-repeat="(id, recordObj) in viewableRecords"
 						ng-hide="recordQuery != ''"
 						ng-include="'partials/result/profileRecord.html'"></p>
@@ -105,6 +106,7 @@
 					<select style="width:75px;" ng-model="viewRecordLength" ng-change="changeViewable(-viewRecordStart)">
 						<option value="3">3</option>
 						<option value="10">10</option>
+						<option value="{{allRecords.length}}" ng-selected="viewRecordLength == allRecords.length">All</option>
 					</select> 
 				</span>
 

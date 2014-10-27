@@ -69,6 +69,12 @@
 						></i> View All
 					</a>  
 					<a class="button small secondary"
+						ng-click="search.viewAllUsers()"
+						ng-hide="appCache.context != 'profile' "> <i
+						class="fa fa-list" 
+						></i> View All
+					</a> 
+					<a class="button small secondary"
 						ng-click="showCreate(appCache.context);"
 						ng-hide="session.currentUser.id == session.guestUser.id"> <i
 						class="fa fa-plus"></i> Create {{appCache.context | capitalize}}

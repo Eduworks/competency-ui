@@ -151,7 +151,7 @@ factory('search', ['$rootScope', 'appCache', 'context', 'modelItem', 'competency
 	
 	var viewAllModels = function(){
 		this.query = "";
-		this.prevSearchedContext != contexts.model;
+		this.prevSearchedContext = contexts.model;
 		this.model = this.ALL_MODELS;
 		
 		var search = this;
@@ -162,6 +162,24 @@ factory('search', ['$rootScope', 'appCache', 'context', 'modelItem', 'competency
 			search.setResults(results, contexts.model);
 			
 			$rootScope.showResults(contexts.model, undefined, search.model);
+		}, function(error){
+			alert.setErrorMessage(error);
+		});
+	}
+	
+	var viewAllUsers = function(){
+		this.query = "";
+		this.prevSearchedContext = contexts.profile;
+		this.model = this.ALL_MODELS;
+		
+		var search = this;
+		
+		userItem.getAllUsers().then(function(data){
+			var results = data;
+			
+			search.setResults(results, contexts.profile);
+			
+			$rootScope.showResults(contexts.profile, undefined, undefined);
 		}, function(error){
 			alert.setErrorMessage(error);
 		});
@@ -207,6 +225,7 @@ factory('search', ['$rootScope', 'appCache', 'context', 'modelItem', 'competency
 		runSearch: search,
 
 		viewAllModels: viewAllModels,
+		viewAllUsers: viewAllUsers,
 		
 		setResults: setResults,
 		clearResults: removePreviousSearch,
@@ -350,8 +369,8 @@ factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'gu
 	}
 }]).
 
-factory('alert', ['$rootScope', 'errorCode',
-                    function($rootScope, errorCode){
+factory('alert', ['$rootScope', 'errorCode', 'session',
+                    function($rootScope, errorCode, session){
 	var errorMessage = "";
 	var warningMessage = "";
 	
@@ -373,9 +392,8 @@ factory('alert', ['$rootScope', 'errorCode',
 				}
 				break;
 			case errorCode.login:
-				$rootScope.goLogin();
-				break;
 			case errorCode.expired:
+				session.currentUser = {id: ""};
 				$rootScope.goLogin();
 				break;
 			}
@@ -1143,6 +1161,8 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 			}, 10)
 		}
 
+		var competencyItem = this;
+		
 		importedDeferrer.promise.then(function(){
 			$http.post(apiURL + "create", data,
 					{
@@ -1150,10 +1170,14 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 				transformRequest: function(data){ return data; }
 					}
 			).success(function(data, status, headers, config){
+				competencyItem.competencyCache = {};
 				cache = {};
+				competencyCache = {};
 				
 				var result = {};
 
+				// TODO: INVALIDATE CACHE OR UPDATE THE RELATIONSHIPS
+				
 				for(var id in data){
 					var newComp = new competency(data[id], id, modelId);
 
@@ -1278,6 +1302,7 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 			}, 10)
 		}
 
+		var competencyItem = this;
 		importDeferrer.promise.then(function(){
 			$http.post(apiURL + "update", data,
 					{
@@ -1285,8 +1310,16 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 				transformRequest: function(data){ return data; }
 					}
 			).success(function(data, status, headers, config){
+				competencyItem.competencyCache = {};
+				cache = {};
+				competencyCache = {};
+				
 				var result = new competency(data, competencyId, newData.modelId);
 
+				cache[result.modelId] = {};
+				cache[result.modelId][result.id] = {};
+				// TODO: INVALIDATE CACHE OR UPDATE THE RELATIONSHIPS
+				
 				for(var i in result){
 					cache[result.modelId][result.id][i] = result[i];
 				}
@@ -1913,6 +1946,37 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 
 		return deferred.promise;
 	}
+	
+	var getAllUsers = function(){
+		var cache = this.userCache;
+
+		var deferred = $q.defer();
+		
+		var obj = {sessionId: session.currentUser.sessionId};
+		
+		var data = new FormData();
+		data.append(dataObjectName, JSON.stringify(obj));
+
+		$http.post(apiURL + "user/all", data,
+				{
+			headers: {'Content-Type': undefined},
+			transformRequest: function(data){ return data; }
+				}).success(function(data, status, headers, config){
+					var result = {};
+
+					for(var userId in data){
+						result[userId] = new user(data[userId], userId);
+
+						cache[userId] = result[userId];
+					}
+
+					deferred.resolve(result);
+				}).error(function(data, status, headers, config){
+					alert(data);
+				});
+		
+		return deferred.promise;
+	}
 
 	var searchUsers = function(query, callbackObj){
 		var cache = this.userCache;
@@ -2074,6 +2138,7 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 		userCache: userCache,
 
 		getUser: getUser,
+		getAllUsers: getAllUsers,
 		makeLocalUser: function(data, userId){ return new user(data, userId); },
 
 		searchUsers:searchUsers,
