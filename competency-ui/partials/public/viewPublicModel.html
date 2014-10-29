@@ -38,23 +38,24 @@
 						No Competencies Defined Yet
 					</div>
 					<ul ng-hide="objectLength(competencies) == 0">
-						<li ng-repeat="(i, competency) in competencies | orderByObj:'title'" style='list-style:none;'>
+						<li ng-repeat="(i, competency) in competencies | orderByObj:'title'" style="white-space:nowrap;width:100%;overflow:hidden;text-overflow:ellipsis;">
 							<a ng-click="toggleDetails(competency.id)" id="{{fixId(competency.id)}}" title="View More">{{competency.title}}</a>
 							<span ng-hide="competency.description == '' || competency.description == undefined">
 								: <small>{{competency.description}}</small>
 							</span>
-							<p style="font-size:0.8rem;" ng-hide="hideDetails[competency.id]">
-								<span ng-repeat="(relationshipName, relatedArray) in competency.relationships">
+							<div style="font-size:0.8rem;" ng-hide="hideDetails[competency.id]" >
+								<div ng-repeat="(relationshipName, relatedArray) in competency.relationships" style="padding-left:10px;">
 									<strong>{{relationshipName}}:</strong>
-									<span ng-repeat="id in relatedArray">
-										<a ng-click="jumpTo(appCache.competencyCache[competency.modelId][id].modelId, appCache.competencyCache[competency.modelId][id].id)" title="Jump To This Competency">
-											{{appCache.competencyCache[competency.modelId][id].title}}
-										</a>
-									</span>
-									<br/>
-								</span>
+									<ul>
+										<li ng-repeat="id in relatedArray" style="font-size:0.8rem;max-widt:100%; overflow:hidden; text-overflow:ellipsis;">
+											<a ng-click="jumpTo(appCache.competencyCache[competency.modelId][id].modelId, appCache.competencyCache[competency.modelId][id].id)" title="Jump To This Competency">
+												{{appCache.competencyCache[competency.modelId][id].title}}
+											</a>
+										</li>
+									</ul>
+								</div>
 								<span style="font-size:0.6rem"'>{{competency.uri}}</span>
-							</p>
+							</div>
 						</li>
 					</ul>
 				</div>

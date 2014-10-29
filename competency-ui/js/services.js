@@ -797,7 +797,8 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 	var competency = function(competency, competencyId, modelId){
 		this.id = competencyId;
 		this.modelId = modelId;
-		this.title = competency[":competencyTitle"][0];
+		var div = document.createElement('div'); div.innerHTML = competency[":competencyTitle"][0];
+		this.title = div.firstChild.nodeValue;
 		this.uri = competency.uri;
 
 		this.descriptions = [];
