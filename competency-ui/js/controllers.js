@@ -85,7 +85,7 @@ controller('searchController', ['$scope', '$routeParams', 'search', 'appCache', 
 		}else{
 			$scope.goHome();
 		}
-	} 
+	}
 
 }]).
 
@@ -227,7 +227,7 @@ controller('viewPublicModelController', ['$scope', '$location', '$routeParams', 
                                          function($scope, $location, $routeParams, appCache,contexts, session, alert, modelItem, competencyItem) {
 	$scope.appCache = appCache;
 	
-	$scope.competencies = {}
+	$scope.competencies = undefined;
 	$scope.hideDetails = {};
 	
 	appCache.setCurrentItem(contexts.model, 'model-'+$routeParams.partialModelId, undefined).
@@ -1037,6 +1037,8 @@ controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'sess
 
 	$scope.changePassword = false;
 	
+	$scope.savingProfile = false;
+	
 	if($routeParams.profileId != undefined){
 		appCache.startEdit(context.profile, $routeParams.profileId);
 		$scope.create = false;
@@ -1083,6 +1085,8 @@ controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'sess
 			return;
 		}
 		
+		$scope.savingProfile = true;
+		
 		if($scope.create){
 			if(appCache.editedItem.password == $scope.newPasswordCheck){
 				userItem.createUser(appCache.editedItem).then(function(newUser){
@@ -1091,23 +1095,59 @@ controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'sess
 					if(session.currentUser.sessionId == undefined){
 						session.login(appCache.editedItem.id, appCache.editedItem.password).then(function(){
 							$scope.showView('profile', newUser.id);
+							$scope.savingProfile = false;
 						}, function(error){
 							alert.setErrorMessage(error);
 							$scope.goLogin();
+							$scope.savingProfile = false;
 						})
 					}
 				}, function(error){
 					alert.setErrorMessage(error);
+					$scope.savingProfile = false;
 				})  
 			}else{
 				alert.setErrorMessage("Password's do not match!")
 			}
 		}else{
+			var passwordChanged = false;
+			var userChanged = false;
+			
+			if($scope.changePassword){
+				if(appCache.editedItem.password != $scope.newPasswordCheck){
+					alert.setErrorMessage("Password's Do Not Match!")
+					
+					$scope.savingProfile = false;
+					return;
+				}
+				
+				userItem.editPassword(appCache.editedItem).then(function(){
+					passwordChanged = true;
+					
+					if(userChanged){
+						$scope.showView('profile', appCache.editedItem.id);
+					}
+					
+					$scope.savingProfile = false;
+				}, function(error){
+					alert.setErrorMessage(error);
+					$scope.savingProfile = false;
+				})
+			}
+			
 			userItem.editUser(appCache.editedItem).then(function(updatedUser){
-				$scope.showView('profile', updatedUser.id);
+				userChanged = true;
+				
+				if(!$scope.changePassword || passwordChanged){
+					$scope.showView('profile', appCache.editedItem.id);
+				}
+				
+				$scope.savingProfile = false;
 			}, function(error){
 				alert.setErrorMessage(error);
+				$scope.savingProfile = false;
 			})
+			
 		}
 	}
 

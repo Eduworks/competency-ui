@@ -2134,6 +2134,39 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 
 		return deferred.promise;
 	}
+	
+	var editPassword = function(userData){
+		var deferred = $q.defer();
+
+		var obj = {sessionId: session.currentUser.sessionId};
+
+		for(var i in userData){
+			switch(i){
+			case "id":
+				obj.userId = userData[i];
+				break;
+			case "password":
+				obj.password = userData[i];
+			default:
+				break;
+			}
+		}
+
+		var data = new FormData();
+		data.append(dataObjectName, JSON.stringify(obj));
+
+		$http.post(apiURL + "user/resetPassword", data,
+				{
+			headers: {'Content-Type': undefined},
+			transformRequest: function(data){ return data; }
+				}).success(function(data, status, headers, config){
+					deferred.resolve();
+				}).error(function(data, status, headers, config){
+					deferred.reject(data);
+				});      
+
+		return deferred.promise;
+	}
 
 	return {
 		userCache: userCache,
@@ -2147,6 +2180,8 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 
 		createUser: createUser,
 		editUser: editUser,
+		
+		editPassword: editPassword,
 	}
 
 }]).

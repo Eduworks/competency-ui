@@ -34,10 +34,14 @@
 					
 				<div>
 					<h5 style='font-weight:bold;'>Competencies:</h5>
-					<div ng-hide="objectLength(competencies) > 0">
+					<div ng-hide="competencies != undefined || objectLength(competencies) > 0" style="padding-left:10px;">
+						<i class="fa fa-spin fa-circle-o-notch"></i>
+						Loading Competencies
+					</div>
+					<div ng-hide="competencies == undefined || objectLength(competencies) > 0">
 						No Competencies Defined Yet
 					</div>
-					<ul ng-hide="objectLength(competencies) == 0">
+					<ul ng-hide="competencies == undefined || objectLength(competencies) == 0">
 						<li ng-repeat="(i, competency) in competencies | orderByObj:'title'" style="white-space:nowrap;width:100%;overflow:hidden;text-overflow:ellipsis;">
 							<a ng-click="toggleDetails(competency.id)" id="{{fixId(competency.id)}}" title="View More">{{competency.title}}</a>
 							<span ng-hide="competency.description == '' || competency.description == undefined">

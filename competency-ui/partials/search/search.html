@@ -15,7 +15,7 @@
 					</div>
 					<div class="small-2 large-1 columns" style="padding: 0px;">
 						<a class="button postfix secondary"
-							ng-click="search.runSearch(appCache.context)"> <i
+							ng-click="showResults(appCache.context, search.query, search.model)"> <i
 							class="fa fa-search"></i>
 						</a>
 					</div>
@@ -63,7 +63,7 @@
 						></i> View All
 					</a>
 					<a class="button small secondary"
-						ng-click="search.query = ''; search.runSearch(appCache.context)"
+						ng-click="search.query = ''; showResults(appCache.context, search.query, search.model)"
 						ng-hide="appCache.context != 'competency' "> <i
 						class="fa fa-list" 
 						></i> View All

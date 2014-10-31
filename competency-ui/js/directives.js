@@ -44,11 +44,11 @@ directive('ngDropdownChecklist', ['$parse', '$location', 'search', 'appCache', '
 			$(document).bind('click', function (e) {
 				var $clicked = $(e.target);
 				
-				if (!$clicked.parents().hasClass(elm.attr("class")) && !elm.find("#options ul").is(":hidden")){
+				if (!$clicked.parents().hasClass(elm.attr("class")) && !elm.find("#options").is(":hidden")){
 					
-					elm.find("#options ul").hide();
+					elm.find("#options").hide();
 					
-					if(elm.find("#options ul").is(":hidden") && appCache.context == context.competency && models != undefined){
+					if(elm.find("#options").is(":hidden") && appCache.context == context.competency && models != undefined){
 						scope.$apply(function(){
 							if($location.path().indexOf('results') != -1){
 								$location.search('model', models);
@@ -61,9 +61,9 @@ directive('ngDropdownChecklist', ['$parse', '$location', 'search', 'appCache', '
 			});
 	
 			elm.find('#display').on('click', function () {
-				elm.find("#options ul").toggle();
+				elm.find("#options").toggle();
 				
-				if(elm.find("#options ul").is(":hidden") && models != undefined){
+				if(elm.find("#options").is(":hidden") && models != undefined){
 					scope.$apply(function(){
 						if($location.path().indexOf('results') != -1){
 							$location.search('model', models);

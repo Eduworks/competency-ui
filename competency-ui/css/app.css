@@ -361,7 +361,9 @@ body>.row {
 }
 
 .dropdown #options {
-    position:relative;
+	display:none;
+    position:absolute;
+    right:0px;
 }
 .dropdown #options ul {
 	box-shadow: -2px 7px 15px #AAA;
@@ -369,10 +371,9 @@ body>.row {
     border-radius: 5px;
     
     background-color: #FFF;
-    display:none;
+    
     left:80px;
     padding: 2px 15px 2px 5px;
-    position:absolute;
     top:0px;
     
     list-style:none;
