@@ -5,22 +5,19 @@
 		</span>
 		<div class="row">
 			<div class="small-8 columns small-centered">
+				<p style="margin-bottom:0px;"> 
+						<a ng-click="showView('model', appCache.currentItem.modelId)" class="info-source-description"
+						ng-bind="appCache.currentModel.name"> </a> 
+				</p> 
 				<h3 class="info-title" ng-bind="appCache.currentItem.title"></h3>
 				<p class="info-description" style='margin-bottom: 0px;'
 					ng-repeat="description in appCache.currentItem.descriptions">
-					{{description.text}}</p>
-				<p>
-					<strong>ID:</strong> <span class="info-id-entry">{{appCache.currentItem.id}}</span>
+					{{description.text}}
 				</p>
-				<hr>
-				<div title="{{appCache.currentModel.id}}">
-					<h4>Model:</h4> 
-					<p style="margin-bottom:0px;"> 
-						<a ng-click="showView('model', appCache.currentItem.modelId)" class="info-source-description"
-						ng-bind="appCache.currentModel.name"> </a> 
-					</p> 
-					<p class="info-source-url" ng-bind="appCache.currentModel.uri"></p>
-				</div>
+				<br/>
+				<p style="font-size:0.7rem;">
+					<span class="info-id-entry">{{appCache.currentItem.uri}}</span>
+				</p>
 				<hr>
 				<div>
 					<h4>Levels:</h4>

@@ -253,11 +253,30 @@ controller('viewPublicModelController', ['$scope', '$location', '$routeParams', 
 		}
 		
 	}, function(error){
-		
+		alert.setErrorMessage(error);
 	})
 	
 	$scope.toggleDetails = function(id){
 		$scope.hideDetails[id] = !$scope.hideDetails[id];
+		
+		if($scope.hideDetails[id] == false){
+			$scope.changeHash($scope.fixId(id));
+			
+			setTimeout(function(){
+				var fixed = $scope.fixId(id);
+				var el = $("a#"+fixed)
+				var off = el.offset();
+				var top = parseInt(off.top);
+				
+				var b = $("#compDetails");
+				var currentLoc = b.scrollTop();
+				
+				b.animate({
+					scrollTop:(currentLoc+top)+"px"
+				}, 250);
+				
+			}, 100)
+		}
 	}
 	
 	$scope.goBack = function(){
@@ -271,9 +290,18 @@ controller('viewPublicModelController', ['$scope', '$location', '$routeParams', 
 	}
 	
 	$scope.fixId = function(id){
-		var fix = id.replace(':', "#");
+		var fix = id.replace(':', "");
 		
 		return fix;
+	}
+	
+	$scope.jumpTo = function(modelId, competencyId){
+		if(modelId ==  'model-'+$routeParams.partialModelId){
+			$scope.hideDetails[competencyId] = true;
+			$scope.toggleDetails(competencyId);
+		}else{
+			$scope.showPublicModelPage(modelId, competencyId);
+		}
 	}
 }]).
 

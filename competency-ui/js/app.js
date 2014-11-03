@@ -123,7 +123,8 @@ angular.module('CompetencyManager',
 	 $routeProvider.when('/model-:partialModelId',
 			 {
 		 templateUrl: 'partials/public/viewPublicModel.html',
-		 controller: 'viewPublicModelController'
+		 controller: 'viewPublicModelController',
+		 reloadOnSearch: false,
 			 }
 	 );
 
@@ -157,9 +158,16 @@ angular.module('CompetencyManager',
 		 modelItem.getAllModels();
 	 }
 
-	 $rootScope.showPublicModelPage = function(modelId){
+	 $rootScope.showPublicModelPage = function(modelId, competencyId){
+		 pushLocation();
+		 
 		 alert.clearMessages();
 		 $location.path("/"+modelId)
+		 
+		 if(competencyId != undefined){
+			 competencyId = competencyId.replace(':', "");
+			 $location.hash(competencyId)
+		 }
 	 }
 	 
 	 $rootScope.goLogin = function(){
@@ -318,7 +326,7 @@ angular.module('CompetencyManager',
 		 session.logout();
 		 $location.path("/login");
 	 }
-
+	 
 	 $rootScope.goBack = function(){
 		 alert.clearMessages();
 
@@ -327,7 +335,7 @@ angular.module('CompetencyManager',
 		 if(prevLoc == undefined){
 			 $rootScope.goHome();
 		 }else{
-			 if(prevLoc.path.indexOf("edit") != -1 || prevLoc.path.indexOf("create") != -1){
+			 if(prevLoc.path.indexOf("edit") != -1 || prevLoc.path.indexOf("create") != -1 || prevLoc.path.valueOf() == $location.path().valueOf()){
 				 while(prevLoc != undefined && (prevLoc.path.indexOf("edit") != -1 || prevLoc.path.indexOf("create") != -1) || prevLoc.path.valueOf() == $location.path().valueOf()){
 					 prevLoc = appCache.popPrevLoc();
 					 if(prevLoc == undefined)
@@ -343,10 +351,15 @@ angular.module('CompetencyManager',
 				 }
 			 }else{
 				 appCache.setContext(appCache.prevContext);
-				 $window.history.back();
+				 $location.path(prevLoc.path)
 			 }
 			 
 		 }
+	 }
+	 
+	 $rootScope.changeHash = function(hash){
+		 pushLocation();
+		 $location.hash(hash);
 	 }
 
 	 $rootScope.objectLength = function(obj){
