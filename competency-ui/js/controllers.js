@@ -975,14 +975,48 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 
 				var modelId = data.id;
 
+				var deferreds = {};
 				for(var i in $scope.cachedLevels){
-					levelItem.createLevel(modelId, $scope.cachedLevels[i]).then(function(data){
-						ids[$scope.cachedLevels[i].id] = data;
+					deferreds[i] = $q.defer();
+					
+					if(i == 0){
+						levelItem.createLevel(modelId, $scope.cachedLevels[i]).then(function(data){
+							var x = "";
+							for(var s in $scope.cachedLevels){
+								if(data.rank == $scope.cachedLevels[s].rank){
+									x = s;
+								}
+							}
+							
+							
+							ids[$scope.cachedLevels[x].id] = data;
 
-						if(Object.keys(ids).length == Object.keys($scope.cachedLevels).length){
-							deferred.resolve(ids);
-						}
-					}); 
+							if(Object.keys(ids).length == Object.keys($scope.cachedLevels).length){
+								deferred.resolve(ids);
+							}
+							
+							deferreds[x].resolve(x);
+						}); 
+					}else{
+						deferreds[i-1].promise.then(function(old_i){
+							levelItem.createLevel(modelId, $scope.cachedLevels[parseInt(old_i)+1]).then(function(data){
+								var x = "";
+								for(var s in $scope.cachedLevels){
+									if(data.rank == $scope.cachedLevels[s].rank){
+										x = s;
+									}
+								}
+								
+								ids[$scope.cachedLevels[x].id] = data;
+
+								if(Object.keys(ids).length == Object.keys($scope.cachedLevels).length){
+									deferred.resolve(ids);
+								}else{
+									deferreds[x].resolve(x);
+								}
+							}); 
+						});
+					}
 				}
 
 				if(Object.keys($scope.cachedLevels).length == 0){
@@ -1026,6 +1060,9 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 							search.clearResults(context.model);
 							$scope.showView(context.model, modelId);
 						});
+					}else{
+						search.clearResults(context.model);
+						$scope.showView(context.model, modelId);
 					}
 				})
 
