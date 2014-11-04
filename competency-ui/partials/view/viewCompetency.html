@@ -22,9 +22,9 @@
 				<div>
 					<h4>Levels:</h4>
 					<ul style='list-style:none;'>
-						 <li ng-repeat="id in appCache.currentItem.levelIds"
-							title="[{{appCache.levelCache[id].id}}] (Rank {{appCache.levelCache[id].rank}})">
-							<span ng-bind="appCache.levelCache[id].name + ' - ' + appCache.levelCache[id].description"></span>
+						 <li ng-repeat="(id, levelObj) in appCache.currentItem.levels|orderByObj:'rank'"
+							title="[{{levelObj.id}}] (Rank {{levelObj.rank}})">
+							<span ng-bind="levelObj.name"></span>
 							<br />
 						</li>
 					</ul>

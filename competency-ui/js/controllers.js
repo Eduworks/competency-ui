@@ -1547,12 +1547,15 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 	$scope.competencySelected = function(item, model, label){
 		appCache.editedItem.competencyId = item.id;
 
-		angular.element('#no_level_message').remove();  
-
 		var rank = undefined;
 		
 		for(var idx in item.levelIds){
 			levelItem.getLevel(item.modelId, item.levelIds[idx]).then(function(level){
+				if(appCache.competencyCache[item.modelId][item.id].levels == undefined){
+					appCache.competencyCache[item.modelId][item.id].levels = {};
+				}
+				
+				appCache.competencyCache[item.modelId][item.id].levels[level.id] = level;
 				if(rank == undefined){
 					rank = level.rank;
 					appCache.editedItem.levelId = level.id;
@@ -1560,6 +1563,8 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 					rank = level.rank;
 					appCache.editedItem.levelId = level.id;
 				}
+				
+				angular.element('#no_level_message').remove();  
 			});
 		};
 	}
