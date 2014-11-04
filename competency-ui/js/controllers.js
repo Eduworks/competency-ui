@@ -1551,6 +1551,13 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 		
 		for(var idx in item.levelIds){
 			levelItem.getLevel(item.modelId, item.levelIds[idx]).then(function(level){
+				if(appCache.competencyCache[item.modelId] == undefined){
+					appCache.competencyCache[item.modelId] = {};
+					appCache.competencyCache[item.modelId][item.id] = {}
+				}
+				if(appCache.competencyCache[item.modelId][item.id] == undefined){
+					appCache.competencyCache[item.modelId][item.id] = {};
+				}
 				if(appCache.competencyCache[item.modelId][item.id].levels == undefined){
 					appCache.competencyCache[item.modelId][item.id].levels = {};
 				}
