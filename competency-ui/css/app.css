@@ -63,8 +63,11 @@ body>.row {
 	background-color: #F7E140;
 	border-color: #DDC511;
 	color: black;
-}
+}*/
 
+.modal-dialog{
+	top:100px;
+}
 
 
 /* ---- HEADER Bar ---- */

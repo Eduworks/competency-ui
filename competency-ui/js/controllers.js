@@ -268,6 +268,11 @@ controller('viewPublicModelController', ['$scope', '$location', '$routeParams', 
 				var off = el.offset();
 				var top = parseInt(off.top);
 				
+				if(top == 0){
+					setTimeout(this, 100);
+					return;
+				}
+				
 				var b = $("#compDetails");
 				var currentLoc = b.scrollTop();
 				
@@ -995,7 +1000,12 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 						modelObj.levels[newIds[tempId].id] = newIds[tempId];
 					}
 
-					modelItem.editModel(modelObj);
+					
+					appCache.modelCache[modelId].levels = modelObj.levels;
+					modelItem.editModel(modelObj).then(function(){
+						search.clearResults(context.model);
+						$scope.showView(context.model, modelId);
+					});
 				}, function(levelMap){
 					if(Object.keys(levelMap).length != 0 && 
 							!($.inArray(':true', Object.keys(levelMap)) != -1 && 
@@ -1012,12 +1022,14 @@ controller('modelEditController', ['$scope', '$routeParams', '$modal', '$q', 'ap
 							modelObj.levels[levelId] = levelMap[levelId];
 						}
 
-						modelItem.editModel(modelObj);
+						modelItem.editModel(modelObj).then(function(){
+							search.clearResults(context.model);
+							$scope.showView(context.model, modelId);
+						});
 					}
 				})
 
-				search.clearResults(context.model);
-				$scope.showView(context.model, modelId);
+				
 			}, function(error){
 				alert.setErrorMessage(error);
 			})
@@ -1317,6 +1329,7 @@ controller('levelModalController', ['$scope', 'appCache', 'context', 'modelItem'
 				$scope.cachedLevels.push(levelData);
 
 				$scope.allLevels[levelData.id] = levelData;
+				findLowestRankId();
 
 			}else{
 				var modelId = "";
@@ -1354,7 +1367,7 @@ controller('createLevelModalController', ['$scope', 'appCache', 'context', 'aler
 	}
 
 	$scope.create = function(){
-		if($scope.name != "" && $scope.rank != ""){
+		if($scope.name != "" && $scope.rank != "" && $scope.description != ""){
 			$scope.$close({
 				name: $scope.name,
 				description: $scope.description,
@@ -1362,7 +1375,7 @@ controller('createLevelModalController', ['$scope', 'appCache', 'context', 'aler
 				id: $scope.name + "-" + $scope.rank + "-" + $scope.description,
 			});
 		}else{
-			alert.setErrorMessage("A level is required to have a name and rank");
+			alert.setErrorMessage("A level is required to have a name, rank, and description!");
 		}
 	}
 
