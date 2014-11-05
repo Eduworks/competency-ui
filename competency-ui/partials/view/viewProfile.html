@@ -103,9 +103,9 @@
 	
 				<span style="float:right;">
 					Viewable Records: 
-					<select style="width:75px;" ng-model="viewRecordLength" ng-change="changeViewable(-viewRecordStart)">
-						<option value="3">3</option>
-						<option value="10">10</option>
+					<select style="width:75px;" ng-model="viewRecordLength" ng-change="changeViewable(-viewRecordStart)" ng-disabled="objectLength(appCache.currentItem.records) < 3">
+						<option value="3" ng-hide="objectLength(appCache.currentItem.records) < 3">3</option>
+						<option value="10" ng-hide="objectLength(appCache.currentItem.records) < 10">10</option>
 						<option value="{{allRecords.length}}" ng-selected="viewRecordLength == allRecords.length">All</option>
 					</select> 
 				</span>

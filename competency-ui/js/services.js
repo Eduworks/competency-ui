@@ -895,27 +895,56 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 			competencyCacheDefer[modelId] = {};
 		}
 		
-		
-		if(this.competencyCache[modelId] == undefined){
-			this.competencyCache[modelId] = {};
-			this.competencyCache[modelId][competencyId] = {};
-			competencyCacheDefer[modelId] = {};
-			competencyCacheDefer[modelId][competencyId] = [];
-		}else if(this.competencyCache[modelId][competencyId] == undefined){
-			this.competencyCache[modelId][competencyId] = {};
-			competencyCacheDefer[modelId][competencyId] = [];
-		}else if(competencyCacheDefer[modelId][competencyId] != undefined){
-			competencyCacheDefer[modelId][competencyId].push(deferred);
-			return deferred.promise;
-		}else if(this.competencyCache[modelId][competencyId] != undefined){
-			var result = {};
-			result[competencyId] = this.competencyCache[modelId][competencyId];
+		if(competencyId instanceof Array){
+			if(this.competencyCache[modelId] != undefined){
+				var cachedAll = true;
+				var result = {};
+				for(var i in competencyId){
+					var id = competencyId[i];
+					if(this.competencyCache[modelId][id] != undefined && this.competencyCache[modelId][id].title != undefined){
+						result[id] = this.competencyCache[modelId][id]
+					}else{
+						cachedAll = false;
+						this.competencyCache[modelId][id] = {};
+					}
+				}
+				
+				if(cachedAll){
+					setTimeout(function(){
+						deferred.resolve(result);  
+					}, 10);
+					return deferred.promise;
+				}
+			}else{
+				this.competencyCache[modelId] = {};
+				for(var i in competencyId){
+					var id = competencyId[i];
+					this.competencyCache[modelId][id] = {};
+				}
+			}
+		}else{
+			if(this.competencyCache[modelId] == undefined){
+				this.competencyCache[modelId] = {};
+				this.competencyCache[modelId][competencyId] = {};
+				competencyCacheDefer[modelId] = {};
+				competencyCacheDefer[modelId][competencyId] = [];
+			}else if(this.competencyCache[modelId][competencyId] == undefined){
+				this.competencyCache[modelId][competencyId] = {};
+				competencyCacheDefer[modelId][competencyId] = [];
+			}else if(competencyCacheDefer[modelId][competencyId] != undefined){
+				competencyCacheDefer[modelId][competencyId].push(deferred);
+				return deferred.promise;
+			}else if(this.competencyCache[modelId][competencyId] != undefined){
+				var result = {};
+				result[competencyId] = this.competencyCache[modelId][competencyId];
 
-			setTimeout(function(){
-				deferred.resolve(result);  
-			}, 10);
-			return deferred.promise;
+				setTimeout(function(){
+					deferred.resolve(result);  
+				}, 10);
+				return deferred.promise;
+			}
 		}
+		
 
 		$http.post(apiURL + "read", data,
 				{
@@ -935,17 +964,17 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 
 							var mId = uri.substr(slashLoc, hashLoc-slashLoc);
 
-							comp = new competency(data[compId], competencyId, mId);  
+							comp = new competency(data[compId], compId, mId);  
 						}else{
-							comp = new competency(data[compId], competencyId, modelId);  
+							comp = new competency(data[compId], compId, modelId);  
 						}
 
 
 						for(var i in comp){
-							cache[modelId][competencyId][i] = comp[i]; 
+							cache[modelId][comp.id][i] = comp[i]; 
 						}
 
-						if (competencyCacheDefer[modelId][competencyId] != undefined)
+						if (!(competencyId instanceof Array) && competencyCacheDefer[modelId][competencyId] != undefined)
 							for (var i in competencyCacheDefer[modelId][competencyId])
 								competencyCacheDefer[modelId][competencyId][i].resolve(result);
 						competencyCacheDefer[modelId][competencyId] = undefined;

@@ -28,7 +28,7 @@
 				<div class="small-10 columns">
 					<label ng-hide=""> Model <small>required</small> <select
 						id="modelSelect" ng-model="appCache.editedItem.competencyModelId"
-						ng-change="updateDefaultLevels();" ng-disabled="!create">
+						ng-change="clearCompetency();" ng-disabled="!create">
 							<option ng-repeat="(modelId, modelObj) in appCache.modelCache"
 								value="{{modelObj.id}}" title="{{modelObj.uri}}"
 								ng-selected="modelObj.id=='model-default'">{{modelObj.name}}

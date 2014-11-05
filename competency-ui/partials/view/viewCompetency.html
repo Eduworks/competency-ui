@@ -21,7 +21,10 @@
 				<hr>
 				<div>
 					<h4>Levels:</h4>
-					<ul style='list-style:none;'>
+					<p ng-hide="appCache.currentItem.levels[objectKeys(appCache.currentItem.levels)[1]].name != undefined">
+						Loading Levels
+					</p>
+					<ul style='list-style:none;' ng-hide="appCache.currentItem.levels[objectKeys(appCache.currentItem.levels)[1]].name == undefined">
 						 <li ng-repeat="(id, levelObj) in appCache.currentItem.levels|orderByObj:'rank'"
 							title="[{{levelObj.id}}] (Rank {{levelObj.rank}})">
 							<span ng-bind="levelObj.name"></span>
@@ -33,10 +36,14 @@
 				<div class="relationships">
 					<h4>Relationships:</h4> 
 					
-					<p ng-hide="objectLength(appCache.currentItem.relationships) != 0">
+					<p ng-hide="relatedCompetencies[objectKeys(relatedCompetencies)[1]].title != undefined">
+						Loading Related Competencies
+					</p>
+					<p ng-hide="hasRelationships">
 						This Competency has no Relationships yet! 
 					</p> 
-					<div ng-repeat="(relationshipType, relationships) in appCache.currentItem.relationships">
+					<div ng-repeat="(relationshipType, relationships) in appCache.currentItem.relationships"
+						ng-hide="relatedCompetencies[objectKeys(relatedCompetencies)[1]].title == undefined">
 						<span class="info-property-item-name">
 							{{relationshipType}}: 
 						</span> 

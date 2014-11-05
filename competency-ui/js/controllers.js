@@ -316,6 +316,7 @@ controller('viewController', ['$scope', '$routeParams', 'search', 'appCache', 'm
 	$scope.search = search;
 	$scope.contexts = contexts;
 
+	$scope.hasRelationships = true;
 	$scope.relatedCompetencies = {}
 
 	$scope.viewRecordStart = 0;
@@ -345,29 +346,39 @@ controller('viewController', ['$scope', '$routeParams', 'search', 'appCache', 'm
 		case contexts.competency:
 			var rels = appCache.currentItem.relationships;
 
+			var compIds = [];
 			for(var type in rels){
 				for(var id in rels[type]){
-					var compId = "";
-					if(rels[type][id] instanceof Object){
-						compId = rels[type][id].id;
-					}else{
-						compId = rels[type][id]
-					}
 					
-					competencyItem.getCompetency(compId, appCache.currentItem.modelId).
-					then(function(result){
-						for(var compId in result){
-							$scope.relatedCompetencies[compId] = result[compId];
+					if(rels[type][id] instanceof Object){
+						if(compIds.indexOf(rels[type][id].id) == -1){
+							compIds.push(rels[type][id].id);
 						}
-					}, function(error){
-						alert.setErrorMessage(error);
-					}, function(tempResult){
-						for(var compId in tempResult){
-							$scope.relatedCompetencies[compId] = tempResult[compId];
+					}else{
+						if(compIds.indexOf(rels[type][id]) == -1){
+							compIds.push(rels[type][id]);
 						}
-					});
+					}
 				}
+			}		
+			
+			if(compIds.length == 0){
+				$scope.hasRelationships = false;
 			}
+	
+			competencyItem.getCompetency(compIds, appCache.currentItem.modelId).
+			then(function(result){
+				for(var compId in result){
+					$scope.relatedCompetencies[compId] = result[compId];
+				}
+			}, function(error){
+				alert.setErrorMessage(error);
+			}, function(tempResult){
+				for(var compId in tempResult){
+					$scope.relatedCompetencies[compId] = tempResult[compId];
+				}
+			});
+			
 			break;
 		case contexts.profile:
 			if($scope.viewableRecords == undefined || $scope.viewableRecords.length != 0){
@@ -383,6 +394,10 @@ controller('viewController', ['$scope', '$routeParams', 'search', 'appCache', 'm
 				}
 				$scope.allRecords.push(appCache.currentItem.records[id]);
 				i++;
+			}
+			
+			if($scope.allRecords.length < 3){
+				$scope.viewRecordLength = $scope.allRecords.length 
 			}
 			
 			setTimeout(function(){
@@ -1546,9 +1561,10 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 
 	$scope.competencySelected = function(item, model, label){
 		appCache.editedItem.competencyId = item.id;
-
+		
 		var rank = undefined;
 		
+		var ct = 0;
 		for(var idx in item.levelIds){
 			levelItem.getLevel(item.modelId, item.levelIds[idx]).then(function(level){
 				if(appCache.competencyCache[item.modelId] == undefined){
@@ -1571,15 +1587,22 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 					appCache.editedItem.levelId = level.id;
 				}
 				
-				angular.element('#no_level_message').remove();  
+				ct++
+				if(ct = item.levelIds.length){
+					angular.element('#no_level_message').remove();  
+				}
 			});
 		};
+		
 	}
 	
 	$scope.clearCompetency = function(){
 		if(appCache.editedItem.competencyId != ""){
+			angular.element("#level_select").append("<option id='no_level_message' ng-value='' >Select a Competency Before Selecting the Recorded Level</option>");
+			
 			appCache.editedItem.competencyId = "";
 			appCache.editedItem.levelId = "";
+			$scope.competencyTitle = "";
 		}
 	}
 
