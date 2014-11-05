@@ -33,9 +33,9 @@
 				<div class="relationships">
 					<h4>Relationships:</h4> 
 					
-					<span ng-hide="objectLength(appCache.currentItem.relationships) != 0">
+					<p ng-hide="objectLength(appCache.currentItem.relationships) != 0">
 						This Competency has no Relationships yet! 
-					</span> 
+					</p> 
 					<div ng-repeat="(relationshipType, relationships) in appCache.currentItem.relationships">
 						<span class="info-property-item-name">
 							{{relationshipType}}: 

@@ -767,10 +767,10 @@ factory('appCache', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'c
 
 		editedItem: editedItem,
 
-		competencyCache: competencyItem.competencyCache,
-		modelCache: modelItem.modelCache,
-		profileCache: userItem.userCache,
-		levelCache: levelItem.levelCache,
+		competencyCache: (function(){ return competencyItem.competencyCache;})(),
+		modelCache: (function(){ return modelItem.modelCache; })(),
+		profileCache: (function(){ return userItem.userCache;})(),
+		levelCache:(function(){ return levelItem.levelCache;})(),
 
 		setContext: setContext,
 		setCurrentItem: setCurrentItem,
@@ -877,6 +877,7 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 		}
 	}
 
+	
 	var getCompetency = function(competencyId, modelId){
 		//TODO: Needs to use cache appropriately.
 		var deferred = $q.defer();
@@ -1171,9 +1172,15 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 				transformRequest: function(data){ return data; }
 					}
 			).success(function(data, status, headers, config){
-				competencyItem.competencyCache = {};
-				cache = {};
-				competencyCache = {};
+				for(var i in competencyItem.competencyCache){
+					competencyItem.competencyCache[i] = {};
+				}
+				for(var i in cache){
+					cache[i] = {};
+				}
+				for(var i in competencyCache){
+					competencyCache[i] = {};
+				}
 				
 				var result = {};
 
