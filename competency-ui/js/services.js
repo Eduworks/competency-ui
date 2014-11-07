@@ -74,7 +74,7 @@ value('competencyRelationships', {
 	"Desires": ":desires",
 	"Enabled By": ":enabledBy",
 	"Enables": ":enables",
-	"Equivalent To": ":equivalent",
+	"Equivalent To": ":sameAs",
 	"Related To": ":related",
 }).
 
@@ -869,7 +869,14 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 				this.relationships["Related To"] = relationships[propId];
 			break;
 			case competencyRelationships["Equivalent To"]:
-				this.relationships["Equivalent To"] = relationships[propId];
+				for(var i in relationships[propId]){
+					if(relationships[propId][i] != this.id){
+						if(this.relationships["Equivalent To"] == undefined){
+							this.relationships["Equivalent To"] = [];
+						}
+						this.relationships["Equivalent To"].push(relationships[propId][i]);
+					}
+				}
 			break;
 			default:
 				break;
@@ -896,6 +903,9 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 		}
 		
 		if(competencyId instanceof Array){
+			if(competencyId[0] == "")
+				return deferred.promise;
+			
 			if(this.competencyCache[modelId] != undefined){
 				var cachedAll = true;
 				var result = {};
@@ -946,6 +956,8 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 		}
 		
 
+		var competencyItem = this;
+		
 		$http.post(apiURL + "read", data,
 				{
 			headers: {'Content-Type': undefined},
@@ -971,7 +983,7 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 
 
 						for(var i in comp){
-							cache[modelId][comp.id][i] = comp[i]; 
+							competencyItem.competencyCache[modelId][comp.id][i] = comp[i]; 
 						}
 
 						if (!(competencyId instanceof Array) && competencyCacheDefer[modelId][competencyId] != undefined)

@@ -36,14 +36,14 @@
 				<div class="relationships">
 					<h4>Relationships:</h4> 
 					
-					<p ng-hide="relatedCompetencies[objectKeys(relatedCompetencies)[1]].title != undefined">
+					<p ng-hide="relatedCompetencies[objectKeys(relatedCompetencies)[0]].title != undefined || !hasRelationships">
 						Loading Related Competencies
 					</p>
 					<p ng-hide="hasRelationships">
 						This Competency has no Relationships yet! 
 					</p> 
 					<div ng-repeat="(relationshipType, relationships) in appCache.currentItem.relationships"
-						ng-hide="relatedCompetencies[objectKeys(relatedCompetencies)[1]].title == undefined">
+						ng-hide="relatedCompetencies[objectKeys(relatedCompetencies)[0]].title == undefined">
 						<span class="info-property-item-name">
 							{{relationshipType}}: 
 						</span> 

@@ -549,11 +549,9 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 	var setRelationshipVariables = function(result, rels, type, id){
 		for(var type in rels){
 			for(var i in rels[type]){
-				for(var id in result){
-					if(id == rels[type][i]){
-						$scope.relatedCompetencies[id] = result[id];
-						$scope.typeaheadDummy[type][i] = result[id].title;
-					}
+				if(result.id == rels[type][i]){
+					$scope.relatedCompetencies[id] = result;
+					$scope.typeaheadDummy[type][i] = result.title;
 				}
 			}
 		}
@@ -573,20 +571,29 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 				}
 			}
 
+			var ids = [];
+			var idVals = {};
+			
 			for(var type in rels){
 				for(var id in rels[type]){
 					var locType = type;
 					var locId = id;
-					competencyItem.getCompetency(rels[type][id], appCache.currentItem.modelId).
-					then(function(result){
-						setRelationshipVariables(result, rels, locType, locId);
-					}, function(error){
-						alert.setErrorMessage(error);
-					}, function(tempResult){
-						setRelationshipVariables(tempResult, rels, locType, locId);
-					});
+					
+					ids.push(rels[type][id])
+					idVals[rels[type][id]] = {locType: type, locId: id};
 				}
 			}
+			
+			competencyItem.getCompetency(ids, appCache.currentItem.modelId).
+			then(function(result){
+				for(var compId in result){
+					setRelationshipVariables(result[compId], rels, idVals[compId].locType, idVals[compId].locId);
+				}
+				
+			}, function(error){
+				alert.setErrorMessage(error);
+			});
+			
 		}, function(error){
 			alert.setErrorMessage(error);
 			$rootScope.goBack();
@@ -694,6 +701,8 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 			if(appCache.editedItem.relationships[relationshipName].length == 0){
 				delete appCache.editedItem.relationships[relationshipName];
 			}
+			
+			$scope.typeaheadDummy[relationshipName].splice(index, 1);
 		}
 	}
 
