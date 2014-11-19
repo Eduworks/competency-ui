@@ -74,6 +74,9 @@ controller('searchController', ['$scope', '$routeParams', 'search', 'appCache', 
 	
 	$scope.searchBarMessage = "Search";
 	
+	$scope.query = "";
+	$scope.model = search.ALL_MODELS;
+	
 	if(session.currentUser.sessionId == undefined){
 		$scope.goLogin();
 		return;
@@ -86,6 +89,18 @@ controller('searchController', ['$scope', '$routeParams', 'search', 'appCache', 
 			$scope.goHome();
 		}
 	}
+	
+	$scope.runSearch = function(){
+		//search.search2($scope.query, appCache.context, $scope.model);
+		
+		$scope.showResults(appCache.context, $scope.query, $scope.model);
+	}
+	
+	$scope.viewAll = function(){
+		//search.viewAll(appCache.context);
+		
+		$scope.showResults(appCache.context, "", "");
+	}
 
 }]).
 
@@ -95,6 +110,8 @@ controller('resultsController', ['$scope', '$routeParams', '$location', 'search'
 	$scope.search = search;
 	$scope.appCache = appCache;   
 	$scope.contexts = contexts;
+	
+	$scope.model = search.ALL_MODELS;
 	
 	$scope.$on('$locationChangeSuccess', function(){
 		if(appCache.context == contexts.competency && (search.query != $location.search().query || search.model != $location.search().model)){
@@ -112,7 +129,7 @@ controller('resultsController', ['$scope', '$routeParams', '$location', 'search'
 			
 			
 			if(search.query != "" && search.query != undefined  && search.model != "" && search.model != undefined){
-				search.runSearch(appCache.context);
+				search.search2(search.query, appCache.context, search.model);
 			}
 		}
 	})
@@ -158,20 +175,11 @@ controller('resultsController', ['$scope', '$routeParams', '$location', 'search'
 		if($location.search().query != undefined){
 			search.query = $location.search().query;  
 
-			search.runSearch(appCache.context);
+			search.search2(search.query, appCache.context, search.model);
 		}else{
-			if(appCache.context == contexts.model){
-				if(search.model === search.ALL_MODELS){
-					$location.search('model',search.ALL_MODELS);
-					
-					search.viewAllModels();
-				}else if($location.search().model == search.ALL_MODELS){
-					search.viewAllModels();
-				}
-			}else if(appCache.context == contexts.competency){
-				search.runSearch(appCache.context);
-			}else if(appCache.context == contexts.profile){
-				search.viewAllUsers();
+			
+			if(appCache.context == contexts.model || appCache.context == contexts.competency || appCache.context == contexts.profile){
+				search.viewAll(appCache.context, search.model);
 			}else{
 				$scope.showSearch(contexts.model);
 			}
@@ -188,7 +196,7 @@ controller('resultsController', ['$scope', '$routeParams', '$location', 'search'
 			}
 		}
 		
-		search.runSearch(appCache.context);
+		search.search2(search.query, appCache.context, search.model);
 	}
 
 	$scope.$on('$destroy', function(){

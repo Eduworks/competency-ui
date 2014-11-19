@@ -219,7 +219,7 @@ angular.module('CompetencyManager',
 				 obj.query=query;
 			 }
 			 
-			 if(model != undefined && model != ""){
+			 if(model != undefined && model != "" && context == contexts.competency){
 				 obj.model = model;
 			 }
 			 $location.search(obj);

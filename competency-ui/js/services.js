@@ -78,8 +78,8 @@ value('competencyRelationships', {
 	"Related To": ":related",
 }).
 
-factory('search', ['$rootScope', 'appCache', 'context', 'modelItem', 'competencyItem', 'userItem', 'alert',
-                   function($rootScope, appCache, contexts, modelItem, competencyItem, userItem, alert){
+factory('search', ['$rootScope', '$q', 'appCache', 'context', 'modelItem', 'competencyItem', 'userItem', 'alert',
+                   function($rootScope, $q, appCache, contexts, modelItem, competencyItem, userItem, alert){
 	
 	var ALL_MODELS = ["all"];
 
@@ -94,95 +94,151 @@ factory('search', ['$rootScope', 'appCache', 'context', 'modelItem', 'competency
 
 	var resultLength = 0;
 	
-
-	var search = function(context){
-		if(this.query != "" && this.query != undefined){
-			if(this.prevQuery != this.query || this.prevSearchedContext != context || this.prevModels != this.model){
-				this.results = {};
-				this.resultLength = 0;
+	var search = function(query, context, model){
+		var search = this;
+		
+		this.searchPromise(query, context, model).then(function(results){
+			for(var id in results){
+				if(search.results[id] == null)
+					search.results[id] = {};
 				
-				if(this.model == "" || this.model == undefined){
-					this.model = this.ALL_MODELS;
+				for(var field in results[id]){
+					search.results[id][field] = results[id][field]
 				}
-				this.prevModels = this.model;
-				this.prevSearchedContext = context;
-				this.prevQuery = this.query;
+				
+				search.resultLength = Object.keys(results).length;    
 
-				this.results = {};
-				this.resultLength = 0;
-
-				switch(context){
-				case contexts.competency:
-					this.results = competencyItem.searchCompetency(this.query, this.model, this);
-					break;
-				case contexts.model:
-					modelItem.searchModels(this.query, this);
-					break;
-				case contexts.profile:
-					userItem.searchUsers(this.query, this);
-					break;
-				}
+				if(search.resultLength == 0)
+					search.resultLength = -1;
 			}
-
-			var mod = (context != contexts.competency ? undefined : this.model); 
-			$rootScope.showResults(context, this.query, mod);
-		}else if(context == contexts.competency){
+		}, function(error){
+			alert.setErrorMessage(error);
+		}, function(tempResults){
+			for(var id in tempResults){
+				if(search.results[id] == null)
+					search.results[id] = {};
+				
+				for(var field in tempResults[id]){
+					search.results[id][field] = tempResults[id][field]
+				}
+				
+				search.resultLength = Object.keys(tempResults).length;    
+			}
+		})
+		
+	}
+	
+	var searchPromise = function(query, context, model){
+		if(query != null){
+			this.query = query;
+		}else if(this.query == "" && this.query == undefined){
+			if(this.prevQuery != "" && this.prevQuery != undefined){
+				this.query = this.prevQuery;
+			}else{
+				var deferred = $q.defer();
+				
+				setTimeout(function(){
+					deferred.reject("Cannot Search on Empty String");
+				})
+				
+				return deferred.promise;
+			}
+		}
+		
+		if(this.prevQuery != this.query || this.prevSearchedContext != context || this.prevModels != model){
 			this.results = {};
 			this.resultLength = 0;
-			if(this.model == "" || this.model == undefined){
+			
+			if(model == "" || model == undefined || model.length == 0){
 				this.model = this.ALL_MODELS;
+			}else{
+				this.model = model;
 			}
-			var search = this;
-			
-			
-			competencyItem.getAllCompetencies(this.model).then(function(data){
-				var results = data;
-				
-				search.setResults(results, contexts.competency);
-			});
-			
-			$rootScope.showResults(contexts.competency, this.query, this.model);
-		}else if(this.prevQuery != "" && this.prevQuery != undefined){
-			this.query = this.prevQuery;
+			this.prevModels = model;
+			this.prevSearchedContext = context;
+			this.prevQuery = this.query;
+
+			this.results = {};
+			this.resultLength = 0;
+
+			switch(context){
+			case contexts.competency:
+				return competencyItem.searchCompetencyPromise(this.query, this.model);
+				break;
+			case contexts.model:
+				return modelItem.searchModelsPromise(this.query);
+				break;
+			case contexts.profile:
+				return userItem.searchUsersPromise(this.query);
+				break;
+			}
 		}else{
-			alert.setWarningMessage("Cannot Search on Empty String")
+			var deferred = $q.defer();
+			
+			var search = this;
+			setTimeout(function(){
+				deferred.resolve(search.result);
+			})
+			
+			return deferred.promise;
 		}
+		
 	}
 	
-	var viewAllModels = function(){
+	var viewAll = function(context, model){
+		var search = this;
+		
+		this.viewAllPromise(context, model).then(function(results){
+			for(var id in results){
+				if(search.results[id] == null)
+					search.results[id] = {};
+				
+				for(var field in results[id]){
+					search.results[id][field] = results[id][field]
+				}
+			}
+			
+			search.resultLength = Object.keys(results).length;    
+
+			if(search.resultLength == 0)
+				search.resultLength = -1;
+		}, function(error){
+			alert.setErrorMessage(error);
+		}, function(tempResults){
+			for(var id in tempResults){
+				if(search.results[id] == null)
+					search.results[id] = {};
+				
+				for(var field in tempResults[id]){
+					search.results[id][field] = tempResults[id][field]
+				}
+			}
+			
+			search.resultLength = Object.keys(tempResults).length;    
+		})
+	}
+	
+	var viewAllPromise = function(context, model){
 		this.query = "";
-		this.prevSearchedContext = contexts.model;
-		this.model = this.ALL_MODELS;
+		this.prevSearchedContext = context;
+		this.model = (model == undefined || model == "" || model.length == 0) ? this.ALL_MODELS : model;
+		this.results = {};
+		this.resultLength = 0;
+		
 		
 		var search = this;
 		
-		modelItem.getAllModels().then(function(data){
-			var results = data;
-			
-			search.setResults(results, contexts.model);
-			
-			$rootScope.showResults(contexts.model, undefined, search.model);
-		}, function(error){
-			alert.setErrorMessage(error);
-		});
-	}
-	
-	var viewAllUsers = function(){
-		this.query = "";
-		this.prevSearchedContext = contexts.profile;
-		this.model = this.ALL_MODELS;
-		
-		var search = this;
-		
-		userItem.getAllUsers().then(function(data){
-			var results = data;
-			
-			search.setResults(results, contexts.profile);
-			
-			$rootScope.showResults(contexts.profile, undefined, undefined);
-		}, function(error){
-			alert.setErrorMessage(error);
-		});
+		switch(context){
+		case contexts.competency:
+			return competencyItem.getAllCompetencies(this.model)
+			break;
+		case contexts.model:
+			return modelItem.getAllModels();
+			break;
+		case contexts.profile:
+			return userItem.getAllUsers();
+			break;
+		}
 	}
 
 	var setResults = function(results, context){
@@ -224,13 +280,16 @@ factory('search', ['$rootScope', 'appCache', 'context', 'modelItem', 'competency
 		resultLength: resultLength,
 		runSearch: search,
 
-		viewAllModels: viewAllModels,
-		viewAllUsers: viewAllUsers,
+		search2:search,
+		searchPromise: searchPromise,
+		
+		viewAll: viewAll,
+		viewAllPromise: viewAllPromise,
 		
 		setResults: setResults,
 		clearResults: removePreviousSearch,
 		
-		clearAll: clearAll
+		clearAll: clearAll,
 	}
 }]).
 
@@ -1043,8 +1102,33 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 			deferred.reject(data);
 		});
 		
+		var tempResult = {};
+		
+		if(modelId instanceof Array){
+			if(modelId[0] == "all"){
+				modelId = Object.keys(this.competencyCache);
+			}
+			
+			for(var idx in modelId){
+				for(var id in this.competencyCache[modelId[idx]]){
+					tempResult[id] = this.competencyCache[modelId[idx]][id];
+				}
+			}
+		}else{
+			for(var id in this.competencyCache[modelId]){
+				tempResult[id] = this.competencyCache[modelId][id];
+			}
+		}
+		
+		setTimeout(function(){
+			deferred.notify(tempResult);
+		}, 10)
+		
 		return deferred.promise;
 	}
+	
+	var prevQuery = "";
+	var prevResult = {};
 	
 	var searchCompetencyPromise = function(query, modelId){
 		var cache = this.competencyCache;
@@ -1080,12 +1164,21 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 				}
 			}
 
+			prevResult = result;
+			prevQuery = query;
+			
 			deferred.resolve(result);
 
 		}).error(function(data, status, headers, config){
 			deferred.reject(data);
 		});
 
+		if(query == prevQuery){
+			setTimeout(function(){
+				deferred.notify(prevResult);
+			}, 10)
+		}
+		
 		return deferred.promise;
 	}
 
@@ -1543,6 +1636,49 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 					alert('error searching models');
 				})
 	}
+	
+	var prevResult = {};
+	var prevQuery = "";
+	
+	var searchModelsPromise = function(query){
+		var deferred = $q.defer();
+		var cache = this.modelCache;
+		
+		var obj = {sessionId: session.currentUser.sessionId};
+		obj.query = query;
+
+		var data = new FormData();
+		data.append(dataObjectName, JSON.stringify(obj));
+
+		$http.post(apiURL + "query/searchModels", data,
+				{
+			headers: {'Content-Type': undefined},
+			transformRequest: function(data){ return data; }
+				}).success(function(data, status, headers, config){
+					var result = {};
+
+					for(var idx in data){
+						result[data[idx].ontologyId] = new model(data[idx])
+						cache[data[idx].ontologyId] = result[data[idx].ontologyId];
+
+					}
+
+					prevResult = result;
+					prevQuery = query;
+					
+					deferred.resolve(result);
+				}).error(function(data, status, headers, config){
+					alert('error searching models');
+				})
+				
+		if(prevQuery == query){
+			setTimeout(function(){
+				deferred.notify(prevResult);
+			}, 10)
+		}
+				
+		return deferred.promise;
+	}
 
 	var getAllLevels = function(modelId){
 		//TODO: Needs to use cache appropriately.
@@ -1861,6 +1997,7 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 		makeLocalModel: function(data){return new model(data, this);},
 
 		searchModels: searchModels,
+		searchModelsPromise: searchModelsPromise,
 
 		getAllLevels: getAllLevels,
 		getAllModels: getAllModels,
@@ -2055,6 +2192,9 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 				});
 	}
 	
+	var prevQuery;
+	var prevResult;
+	
 	var searchUsersPromise = function(query){
 		var cache = this.userCache;
 		
@@ -2079,10 +2219,19 @@ factory('userItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'modelItem', 'co
 						cache[userId] = result[userId];
 					}
 
+					prevQuery = query;
+					prevResult = result;
+					
 					deferred.resolve(result);
 				}).error(function(data, status, headers, config){
 					deferred.reject(error)
 				});
+		
+		if(prevQuery == query){
+			setTimeout(function(){
+				deferred.notify(prevResult);
+			}, 10)
+		}
 		
 		return deferred.promise;
 	}

@@ -52,7 +52,11 @@ directive('ngDropdownChecklist', ['$parse', '$location', 'search', 'appCache', '
 						scope.$apply(function(){
 							if($location.path().indexOf('results') != -1){
 								$location.search('model', models);
-								search.runSearch(context.competency);
+								if(search.query == "" || search.query == undefined){
+									search.viewAll(context.competency);
+								}else{
+									search.search2(search.query, context.competency, search.model);
+								}
 							}
 								
 						})
@@ -67,7 +71,11 @@ directive('ngDropdownChecklist', ['$parse', '$location', 'search', 'appCache', '
 					scope.$apply(function(){
 						if($location.path().indexOf('results') != -1){
 							$location.search('model', models);
-							search.runSearch(context.competency);
+							if(search.query == "" || search.query == undefined){
+								search.viewAll(context.competency);
+							}else{
+								search.search2(search.query, context.competency, search.model);
+							}
 						}
 							
 					})

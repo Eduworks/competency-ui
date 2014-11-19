@@ -9,29 +9,28 @@
 				</h4>
 				<div class="row">
 					<div class="small-10 large-11 columns" style="padding-right: 0px">
-						<input type="text" placeholder="{{searchBarMessage}}" ng-model="search.query"
-							ng-enter="search.runSearch(appCache.context)"
-							ng-escape="goBack()">
+						<input type="text" placeholder="{{searchBarMessage}}" ng-model="query"
+							ng-enter="runSearch()" ng-escape="goBack()" ng-focus)>
 					</div>
 					<div class="small-2 large-1 columns" style="padding: 0px;">
 						<a class="button postfix secondary"
-							ng-click="showResults(appCache.context, search.query, search.model)"> <i
+							ng-click="runSearch()"> <i
 							class="fa fa-search"></i>
 						</a>
 					</div>
 				</div>
 				<div class="row" id="filters">
 					<div style="float:right">
-						<div class='dropdown' ng-dropdown-checklist ng-model="search.model" ng-hide="appCache.context != contexts.competency">
+						<div class='dropdown' ng-dropdown-checklist ng-model="model" ng-hide="appCache.context != contexts.competency">
 							<div id="label" style="display:inline-block;padding: 8px 20px 5px 10px;">
 							Models: 
 							</div>
 							<div id="display" style="color:white;">
-							    <span id="all" ng-hide="search.model != search.ALL_MODELS && search.model != ''">
+							    <span id="all" ng-hide="model != search.ALL_MODELS && model != ''">
 							    	All Models
 							    </span>
-							    <span id="list" ng-hide="search.model == search.ALL_MODELS">
-							    	<span ng-repeat="modelId in search.model">
+							    <span id="list" ng-hide="model == search.ALL_MODELS">
+							    	<span ng-repeat="modelId in model">
 							    		<span ng-hide="$first">,</span>
 							    		{{appCache.modelCache[modelId].name}}
 							    	</span>
@@ -39,10 +38,10 @@
 							</div>
 						    <div id="options" style="color: black;">
 					            <ul>
-					            	<li ng-repeat="model in appCache.modelCache" ng-on-repeat-done>
-					            		<input type="checkbox" value="{{model.id}}" data-name="{{model.name}}" 
-					            			ng-checked="search.model.indexOf('all') == 0 || search.model.indexOf(model.id) != -1 || search.model == ''"/>
-					            		<span title="{{model.name}}">{{model.name}}</span>
+					            	<li ng-repeat="modelObj in appCache.modelCache" ng-on-repeat-done>
+					            		<input type="checkbox" value="{{modelObj.id}}" data-name="{{modelObj.name}}" 
+					            			ng-checked="model.indexOf('all') == 0 || model.indexOf(modelObj.id) != -1 || model == ''"/>
+					            		<span title="{{modelObj.name}}">{{modelObj.name}}</span>
 					            	</li>
 					            </ul>
 						    </div>
@@ -57,12 +56,11 @@
 						class="fa fa-download"></i> Import
 					</a>
 					<a class="button small secondary"
-						ng-click="search.viewAllModels()"
-						ng-hide="appCache.context != 'model' "> <i
-						class="fa fa-list" 
-						></i> View All
+						ng-click="viewAll()"> 
+						<i class="fa fa-list"></i> 
+						View All
 					</a>
-					<a class="button small secondary"
+					<!-- a class="button small secondary"
 						ng-click="search.query = ''; showResults(appCache.context, search.query, search.model)"
 						ng-hide="appCache.context != 'competency' "> <i
 						class="fa fa-list" 
@@ -73,7 +71,7 @@
 						ng-hide="appCache.context != 'profile' "> <i
 						class="fa fa-list" 
 						></i> View All
-					</a> 
+					</a--> 
 					<a class="button small secondary"
 						ng-click="showCreate(appCache.context);"
 						ng-hide="session.currentUser.id == session.guestUser.id"> <i
