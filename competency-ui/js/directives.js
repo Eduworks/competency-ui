@@ -53,7 +53,7 @@ directive('ngDropdownChecklist', ['$parse', '$location', 'search', 'appCache', '
 							if($location.path().indexOf('results') != -1){
 								$location.search('model', models);
 								if(search.query == "" || search.query == undefined){
-									search.viewAll(context.competency);
+									search.viewAll(context.competency, search.model);
 								}else{
 									search.search2(search.query, context.competency, search.model);
 								}
@@ -72,7 +72,7 @@ directive('ngDropdownChecklist', ['$parse', '$location', 'search', 'appCache', '
 						if($location.path().indexOf('results') != -1){
 							$location.search('model', models);
 							if(search.query == "" || search.query == undefined){
-								search.viewAll(context.competency);
+								search.viewAll(context.competency, search.model);
 							}else{
 								search.search2(search.query, context.competency, search.model);
 							}
