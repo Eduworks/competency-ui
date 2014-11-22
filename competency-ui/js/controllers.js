@@ -130,8 +130,40 @@ controller('resultsController', ['$scope', '$routeParams', '$location', 'search'
 			
 			if(search.query != "" && search.query != undefined  && search.model != "" && search.model != undefined){
 				search.search2(search.query, appCache.context, search.model);
+			}else{
+				search.viewAll(appCache.context, search.model)
 			}
 		}
+		
+		var html = "";
+		var checked = 0;
+		
+		for(var idx in search.model){
+			var modelId = search.model[idx];
+			
+			var title = $("#"+modelId).attr('data-name');
+			
+			if(html == ""){
+				html += '<span>' + title + '</span>';
+			}else{
+				html += ', <span>' + title + '</span>';
+			}
+			
+			checked++;
+		}
+		
+		if(checked == $("#model_filter").find("input[type='checkbox']").length){
+			$("#model_filter").find("#list").html("");
+		}else{
+			$("#model_filter").find("#list").html(html);
+		}
+		
+		var obj = {};
+		obj.path = $location.path();
+		obj.context = appCache.context;
+		obj.search = {};
+		angular.extend(obj.search, $location.search());
+		appCache.pushPrevLoc(obj)
 	})
 	
 	if(session.currentUser.sessionId == undefined){
@@ -1548,6 +1580,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 				recordItem.createRecord(user.id, appCache.editedItem).then(function(newRecord){
 					$location.$$search = {};
 					$scope.showView('profile', user.id);
+					$scope.newValidation = undefined;
 					$scope.savingRecord = false;
 				}, function(error){
 					alert.setErrorMessage(error);
@@ -1556,6 +1589,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 			}else{
 				recordItem.editRecord(user.id, appCache.editedItem.id, appCache.editedItem).then(function(updatedRecord){
 					$scope.showView('profile', user.id);
+					$scope.newValidation = undefined;
 					$scope.savingRecord = false;
 				}, function(error){
 					alert.setErrorMessage(error);

@@ -189,19 +189,21 @@ factory('search', ['$rootScope', '$q', 'appCache', 'context', 'modelItem', 'comp
 		var search = this;
 		
 		this.viewAllPromise(context, model).then(function(results){
-			for(var id in results){
-				if(search.results[id] == null)
-					search.results[id] = {};
-				
-				for(var field in results[id]){
-					search.results[id][field] = results[id][field]
+			if(search.model == model){
+				for(var id in results){
+					if(search.results[id] == null)
+						search.results[id] = {};
+					
+					for(var field in results[id]){
+						search.results[id][field] = results[id][field]
+					}
 				}
-			}
-			
-			search.resultLength = Object.keys(results).length;    
+				
+				search.resultLength = Object.keys(results).length;    
 
-			if(search.resultLength == 0)
-				search.resultLength = -1;
+				if(search.resultLength == 0)
+					search.resultLength = -1;
+			}
 		}, function(error){
 			alert.setErrorMessage(error);
 		}, function(tempResults){
@@ -748,7 +750,11 @@ factory('appCache', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'c
 		this.setContext(context); 
 
 		this.currentItem = {};
-		this.currentItem = newItem[context];
+		if(newItem[context].validations != undefined)
+			newItem[context].validations = {};
+		
+		angular.extend(this.currentItem, newItem[context]);
+		
 
 		this.currentItemId = undefined;
 
@@ -974,7 +980,7 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 						result[id] = this.competencyCache[modelId][id]
 					}else{
 						cachedAll = false;
-						this.competencyCache[modelId][id] = {};
+						//this.competencyCache[modelId][id] = {};
 					}
 				}
 				
@@ -1040,9 +1046,19 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 							comp = new competency(data[compId], compId, modelId);  
 						}
 
-
+						if(mId != modelId){
+							competencyItem.competencyCache[modelId][comp.id] = undefined;
+						}
+						
+						if(competencyItem.competencyCache[mId] == undefined){
+							competencyItem.competencyCache[mId] = {};
+						}
+						if(competencyItem.competencyCache[mId][comp.id] == undefined){
+							competencyItem.competencyCache[mId][comp.id] = {};
+						}
+						
 						for(var i in comp){
-							competencyItem.competencyCache[modelId][comp.id][i] = comp[i]; 
+							competencyItem.competencyCache[mId][comp.id][i] = comp[i]; 
 						}
 
 						if (!(competencyId instanceof Array) && competencyCacheDefer[modelId][competencyId] != undefined)
@@ -1111,12 +1127,14 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 			
 			for(var idx in modelId){
 				for(var id in this.competencyCache[modelId[idx]]){
-					tempResult[id] = this.competencyCache[modelId[idx]][id];
+					if(this.competencyCache[modelId[idx]][id] != undefined)
+						tempResult[id] = this.competencyCache[modelId[idx]][id];
 				}
 			}
 		}else{
 			for(var id in this.competencyCache[modelId]){
-				tempResult[id] = this.competencyCache[modelId][id];
+				if(this.competencyCache[modelId][id] != undefined)
+					tempResult[id] = this.competencyCache[modelId][id];
 			}
 		}
 		

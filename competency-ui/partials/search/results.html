@@ -29,15 +29,15 @@
 		<div id="resultsWrapper" class="small-12 columns">
 
 			<div id="filters" >
-				<div class='dropdown' ng-dropdown-checklist ng-model="search.model" ng-hide="appCache.context != contexts.competency">
+				<div id="model_filter" class='dropdown' ng-dropdown-checklist ng-model="search.model" ng-hide="appCache.context != contexts.competency">
 					<div id="label" style="display:inline-block;padding: 8px 20px 5px 10px;">
-					Models: 
+					Models:
 					</div>
 					<div id="display">
-					    <span id="all" ng-hide="search.model != search.ALL_MODELS">
+					    <span id="all" ng-hide="search.model !== search.ALL_MODELS">
 					    	All Models
 					    </span>
-					    <span id="list" ng-hide="search.model == search.ALL_MODELS">
+					    <span id="list" ng-hide="search.model === search.ALL_MODELS">
 					    	<span ng-repeat="modelId in search.model">
 					    		<span ng-hide="$first">,</span>
 					    		{{appCache.modelCache[modelId].name}}
@@ -47,7 +47,7 @@
 				    <div id="options" style="right:inherit;">
 			            <ul>
 			            	<li ng-repeat="model in appCache.modelCache" ng-on-repeat-done>
-			            		<input type="checkbox" value="{{model.id}}" data-name="{{model.name}}" 
+			            		<input id="{{model.id}}" type="checkbox" value="{{model.id}}" data-name="{{model.name}}" 
 			            			ng-checked="search.model.indexOf('all') == 0 || search.model.indexOf(model.id) != -1"/>
 			            		<span title="{{model.name}}">{{model.name}}</span>
 			            	</li>

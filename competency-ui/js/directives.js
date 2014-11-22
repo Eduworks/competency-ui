@@ -91,31 +91,20 @@ directive('ngDropdownChecklist', ['$parse', '$location', 'search', 'appCache', '
 					models = [];
 					
 					elm.find('input[type="checkbox"]').each(function(){
-						if($(this).is(":checked")){
-							var title = $(this).attr('data-name');
-							
-							if(html == ""){
-								html += '<span>' + title + '</span>';
-							}else{
-								html += ', <span>' + title + '</span>';
-							}
-							
+						if($(this).is(":checked")){	
 							checked++;
 							
 							models.push($(this).val())
 						}
 					});
 					
-					if(checked == elm.find("input[type='checkbox']").length || checked == 0){
-						elm.find("#all").show();
-						
-						elm.find("#list").html("");
+					if(checked == elm.find("input[type='checkbox']").length){
+						//elm.find("#all").show();
 						
 						models = search.ALL_MODELS;
 						elm.find("input[type='checkbox']").prop('checked', true)
-					}else{
-						elm.find("#list").html(html);
-						elm.find("#all").hide();
+					
+						//elm.find("#all").hide();
 					}
 					
 					scope.$apply(function(){
