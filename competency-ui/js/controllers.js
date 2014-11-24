@@ -590,7 +590,7 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 		for(var type in rels){
 			for(var i in rels[type]){
 				if(result.id == rels[type][i]){
-					$scope.relatedCompetencies[id] = result;
+					$scope.relatedCompetencies[result.id] = result;
 					$scope.typeaheadDummy[type][i] = result.title;
 				}
 			}
