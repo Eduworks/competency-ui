@@ -189,7 +189,7 @@ factory('search', ['$rootScope', '$q', 'appCache', 'context', 'modelItem', 'comp
 		var search = this;
 		
 		this.viewAllPromise(context, model).then(function(results){
-			if(search.model == model){
+			if(search.model == model || context == contexts.profile){
 				for(var id in results){
 					if(search.results[id] == null)
 						search.results[id] = {};
