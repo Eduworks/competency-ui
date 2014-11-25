@@ -54,6 +54,7 @@ value('newItem', {
 		description: "",
 		valueType:"String",
 		value:"",
+		valueFile:undefined,
 		result: "",
 	}
 }).
@@ -3065,6 +3066,8 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 
 		var deferred = $q.defer();
 
+		var data = new FormData();
+		
 		var obj = {sessionId: session.currentUser.sessionId};
 		obj.userId = userId;
 		for(var key in evidenceData){
@@ -3082,7 +3085,18 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 				case "String":
 					obj.evidenceString = evidenceData["value"]
 				case "Filename":
-					obj.evidenceFileName = evidenceData["value"];
+					if(evidenceData["valueFile"] == undefined){
+						
+						setTimeout(function(){
+							deferred.reject("Couldn't Find a File to Upload as Evidence!");
+						}, 10);
+						
+						return deferred.promise;
+					}else{
+						obj.evidenceFileName = evidenceData["valueFile"].name;
+						data.append(obj.evidenceFileName, evidenceData["valueFile"]);
+					}
+					
 					break;  
 				}
 				break;
@@ -3098,7 +3112,7 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 			}
 		}
 
-		var data = new FormData();
+		
 		data.append(dataObjectName, JSON.stringify(obj));
 
 		$http.post(apiURL + "record/validation/evidence/create", data,
@@ -3126,6 +3140,8 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 
 		var deferred = $q.defer();
 
+		var data = new FormData();
+		
 		var obj = {sessionId: session.currentUser.sessionId};
 		obj.userId = userId;
 		obj.validationId = validationId;
@@ -3144,9 +3160,21 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 				case "String":
 					obj.evidenceString = evidenceData["value"]
 				case "Filename":
-					obj.evidenceFileName = evidenceData["value"];
+					if(evidenceData["valueFile"] == undefined){
+						
+						setTimeout(function(){
+							deferred.reject("Couldn't Find a File to Upload as Evidence!");
+						}, 10);
+						
+						return deferred.promise;
+					}else{
+						obj.evidenceFileName = evidenceData["valueFile"].name;
+						data.append(obj.evidenceFileName, evidenceData["valueFile"]);
+					}
+					
 					break;  
 				}
+				break; 
 			case "type":
 				obj.evidenceType = evidenceData[key];
 				break;
@@ -3159,7 +3187,6 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 			}
 		}
 
-		var data = new FormData();
 		data.append(dataObjectName, JSON.stringify(obj));
 
 		$http.post(apiURL + "record/validation/evidence/add", data,

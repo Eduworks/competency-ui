@@ -32,14 +32,16 @@
 		</div>
 
 		<div class="row">
-			<span class="small-6 columns"> <strong>Resource Type:</strong>
+			<span class="small-6 columns">
+				<strong>Resource Type:</strong>
 				<select ng-model="newEvidence.valueType"
 				ng-options="id as text for (id, text) in evidenceValueTypes">
-			</select>
-			</span> <span class="small-5 columns"> <strong>Resource:</strong> <input
-				type="text" ng-model="newEvidence.value"
-				ng-hide="newEvidence.valueType == 'Filename'"></input> <input
-				type="file" ng-hide="newEvidence.valueType != 'Filename'"></input>
+				</select>
+			</span> 
+			<span class="small-5 columns"> 
+				<strong>Resource:</strong> 
+				<input type="text" ng-model="newEvidence.value" ng-hide="newEvidence.valueType == 'Filename'"></input> 
+				<input id="{{validId == undefined ? 'evidenceFile' : 'evidenceFile'+validId.replace(':', '')}}" type="file" ng-model="newEvidence.valueFile" ng-hide="newEvidence.valueType != 'Filename'"></input>
 			</span>
 		</div>
 	</div>

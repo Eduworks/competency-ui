@@ -1242,6 +1242,9 @@ controller('profileEditController', ['$scope', '$routeParams', 'appCache', 'sess
 							$scope.goLogin();
 							$scope.savingProfile = false;
 						})
+					}else{
+						$scope.showView('profile', newUser.id);
+						$scope.savingProfile = false;
 					}
 				}, function(error){
 					alert.setErrorMessage(error);
@@ -1486,8 +1489,8 @@ controller('createLevelModalController', ['$scope', 'appCache', 'context', 'aler
 
 }]).
 
-controller('recordEditController', ['$scope', '$routeParams', '$location', '$q', 'appCache', 'session', 'alert', 'context', 'recordItem', 'competencyItem', 'newItem', 'evidenceValueType', 'validationItem', 'userItem', 'levelItem',
-                                    function($scope, $routeParams, $location, $q, appCache, session, alert, context, recordItem,competencyItem, newItem, evidenceValueType, validationItem, userItem, levelItem) {
+controller('recordEditController', ['$scope', '$routeParams', '$location', '$q', 'appCache', 'session', 'alert', 'context', 'recordItem', 'competencyItem', 'newItem', 'evidenceValueType', 'validationItem', 'userItem', 'levelItem', 'apiURL',
+                                    function($scope, $routeParams, $location, $q, appCache, session, alert, context, recordItem,competencyItem, newItem, evidenceValueType, validationItem, userItem, levelItem, apiURL) {
 	$scope.appCache = appCache;
 	$scope.competencyItem = competencyItem;
 
@@ -1510,6 +1513,7 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 	
 	var user = {};
 	$scope.user = user;
+	$scope.apiURL = apiURL
 	
 	var getUser = function(userId){
 		userItem.getUser(userId).then(function(result){
@@ -1859,11 +1863,13 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 		
 		var editingValidation = $scope.editingValidation;
 		var newValidation = $scope.newValidation;
-
+		
 		// New Evidence
 		if($scope.newEvidence.id == undefined){
 			// New Validation
 			if(editingValidation == undefined){
+				$scope.newEvidence.valueFile = $("input#evidenceFile")[0].files[0];
+				
 				validationItem.createUnattachedEvidence($scope.newEvidence, $scope.user.id).then(function(newEvidence){
 
 					newValidation.evidenceIds.push(newEvidence.id);
@@ -1880,6 +1886,10 @@ controller('recordEditController', ['$scope', '$routeParams', '$location', '$q',
 				});
 				// Add to Existing Validation
 			}else{
+				var y = "input#evidenceFile"+$scope.editingValidation.replace(":", "");
+				var z = $(y);
+				$scope.newEvidence.valueFile = $(y)[0].files[0];
+				
 				validationItem.addEvidenceToValidation($scope.newEvidence, editingValidation, $scope.user.id).then(function(newEvidence){
 					appCache.editedItem.validations[editingValidation].evidenceIds.push(newEvidence.id);
 					appCache.editedItem.validations[editingValidation].evidences[newEvidence.id] = newEvidence;

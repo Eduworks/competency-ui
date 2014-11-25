@@ -26,10 +26,16 @@
 
 		<div class="row">
 			<span class="small-6 columns"> <strong>Resource Type:</strong>
-				{{validObj.evidences[evidenceId].valueType}}
-			</span> <span class="small-4 columns"> <strong>Resource:</strong> <span>{{validObj.evidences[evidenceId].value}}</span>
-				<span>{{validObj.evidences[evidenceId].file}}</span>
+				<span ng-hide="validObj.evidences[evidenceId].valueType == 'Filename'">{{validObj.evidences[evidenceId].valueType}}</span>
+				<span ng-hide="validObj.evidences[evidenceId].valueType != 'Filename'">File</span>
+			</span> <span class="small-4 columns"> 
+				<strong>Resource:</strong> 
+				<span ng-hide="validObj.evidences[evidenceId].valueType == 'Filename'">{{validObj.evidences[evidenceId].value}}</span>
+				<span ng-hide="validObj.evidences[evidenceId].valueType != 'Filename'">
+					<a href="{{apiURL + 'record/validation/evidence/readFile?userId='+ user.id + '&evidenceId=' + evidenceId}}">Download File</a>
+				</span>
 			</span>
 		</div>
+		<br/>
 	</div>
 </div>
