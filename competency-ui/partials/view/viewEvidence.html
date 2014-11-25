@@ -32,7 +32,9 @@
 				<strong>Resource:</strong> 
 				<span ng-hide="validObj.evidences[evidenceId].valueType == 'Filename'">{{validObj.evidences[evidenceId].value}}</span>
 				<span ng-hide="validObj.evidences[evidenceId].valueType != 'Filename'">
-					<a href="{{apiURL + 'record/validation/evidence/readFile?userId='+ user.id + '&evidenceId=' + evidenceId}}">Download File</a>
+					<a target="_blank" href="{{apiURL + 'record/validation/evidence/readFile?userId='+ user.id + '&evidenceId=' + evidenceId}}">
+						Download File
+					</a>
 				</span>
 			</span>
 		</div>
