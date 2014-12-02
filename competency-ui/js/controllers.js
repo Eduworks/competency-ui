@@ -533,7 +533,8 @@ controller('competencyEditController', ['$scope', '$routeParams', '$modal', 'app
 	$scope.appCache = appCache;
 	$scope.competencyItem = competencyItem;
 	$scope.competencyRelationships = competencyRelationships;
-
+	$scope.$modal = $modal;
+	
 	$scope.relatedCompetencies = {};
 
 	$scope.selectableModels = {};

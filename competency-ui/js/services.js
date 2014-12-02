@@ -1254,6 +1254,10 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 
 		var importedDeferrer = $q.defer();
 
+		var levelDeferrer = $q.defer();
+		var newLevelCount = 0;
+		var newLevelsMade = 0;
+		
 		var obj = {sessionId: session.currentUser.sessionId};
 		for(var prop in newData){
 			switch(prop){
@@ -1270,7 +1274,23 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 			case 'levels':
 				obj.competencyLevels = [];  
 				for(var levelId in newData[prop]){
-					obj.competencyLevels.push(levelId);
+					if(levelId.indexOf(":") == 0){
+						obj.competencyLevels.push(levelId);
+					}else{
+						newLevelCount++;
+						
+						levelItem.createLevel(newData.modelId, newData[prop][levelId]).then(function(levelObj){
+							obj.competencyLevels.push(levelObj.id);
+							
+							newLevelsMade++;
+							
+							if(newLevelsMade == newLevelCount){
+								levelDeferrer.resolve();
+							}
+						}, function(error){
+							levelDeferrer.reject();
+						})
+					}
 				}
 				break;
 			case 'relationships':
@@ -1308,17 +1328,42 @@ factory('competencyItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL
 		obj.modelId = modelId;
 
 		var data = new FormData();
-		data.append(dataObjectName, JSON.stringify(obj));
 
 		if(obj.competencyRelationships == undefined || imports == imported){
 			setTimeout(function(){
 				importedDeferrer.resolve();
 			}, 10)
 		}
+		
+		if(newLevelCount == 0){
+			setTimeout(function(){
+				levelDeferrer.resolve();
+			})
+		}
 
-		var competencyItem = this;
+		var importingDone = false;
+		var levelsCreated = false;
+		var bothDeferrer = $q.defer();
 		
 		importedDeferrer.promise.then(function(){
+			importingDone = true;
+			
+			if(levelsCreated){
+				bothDeferrer.resolve();
+			}
+		});
+		levelDeferrer.promise.then(function(){
+			levelsCreated = true;
+			
+			if(importingDone){
+				bothDeferrer.resolve();
+			}
+		});
+		
+		var competencyItem = this;
+		
+		bothDeferrer.promise.then(function(){
+			data.append(dataObjectName, JSON.stringify(obj));
 			$http.post(apiURL + "create", data,
 					{
 				headers: {'Content-Type': undefined},
@@ -1721,7 +1766,8 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 		}
 		
 		if(	this.modelCache[modelId] != undefined &&
-			this.modelCache[modelId].allLevels != undefined &&
+			this.modelCache[modelId].allLevels != undefined && 
+			Object.keys(this.modelCache[modelId].allLevels).length != 0 &&
 			modelLevelCacheDefer[modelId] == undefined)
 		{
 			setTimeout(function(){
@@ -1732,6 +1778,9 @@ factory('modelItem', ['$http', '$q', 'levelItem', 'dataObjectName', 'apiURL', 's
 		else if (this.modelCache[modelId].allLevels == undefined)
 		{
 			this.modelCache[modelId].allLevels = {};
+			modelLevelCacheDefer[modelId] = [];
+		}
+		else if (modelLevelCacheDefer[modelId] == undefined){
 			modelLevelCacheDefer[modelId] = [];
 		}
 		else
