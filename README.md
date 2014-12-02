@@ -23,8 +23,11 @@ Installation Instructions
 server
 2. Rename the copied directory to "ROOT" if it will be the ROOT directory of
 your web server  
-    - **Note:** If you place the copied directory in a subdirectory of the "ROOT"
-directory, you will need to modify the `<base>` tag in index.html to match the subdirectory
+    - **Note:** If you place the copied directory in a subdirectory of the
+"ROOT" directory, you will need to modify the `<base>` tag in index.html to 
+match the subdirectory (e.g. if place the copied directory in 
+'/webapps/ROOT/competency/', you will need to change the value of the base tag
+to '/competency/')
 3. Open js/definitions.js and modify the apiURL value to match your domain or
 IP with the URL Path of 'levr/api/custom/competency'
 
@@ -38,3 +41,6 @@ Ensure Tomcat has Read Permissions for all files in the webapps directory
 
 Check that you are using the correct port number for your apiURL definition
 and when you navigate via browser to the website.
+
+
+Check that the base tag value in index.html matches the subdirectory that you place
