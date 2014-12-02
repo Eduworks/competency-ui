@@ -22,8 +22,8 @@ Installation Instructions
 1. Copy the competency-ui directory to the webapps directory of your Tomcat
 server
 2. Rename the copied directory to "ROOT" if it will be the ROOT directory of
-your web server
-**Note:** If you place the copied directory in a subdirectory of the "ROOT"
+your web server  
+    - **Note:** If you place the copied directory in a subdirectory of the "ROOT"
 directory, you will need to modify the `<base>` tag in index.html to match the subdirectory
 3. Open js/definitions.js and modify the apiURL value to match your domain or
 IP with the URL Path of 'levr/api/custom/competency'
