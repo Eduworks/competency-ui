@@ -3,36 +3,36 @@
         "http://www.tuckey.org/res/dtds/urlrewrite5.0.dtd">
 
 <urlrewrite>
-        <rule match-type="wildcard">
-                <from>/*/home</from>
+        <rule>
+                <from>^((?![\w/\-]*partials)[\w/\-]*)/home$</from>
                 <to>$1/index.html</to>
         </rule>
-        <rule match-type="wildcard">
-                <from>/*/login</from>
+        <rule>
+                <from>^((?![\w/\-]*partials)[\w/\-]*)/login$</from>
                 <to>$1/index.html</to>
         </rule>
-        <rule match-type="wildcard">
-                <from>/*/search/*</from>
+        <rule>
+                <from>^((?![\w/\-]*partials)[\w/\-]*)/search/[\w/]*</from>
                 <to>$1/index.html</to>
         </rule>
-        <rule match-type="wildcard">
-                <from>/*/view/**</from>
+        <rule>
+                <from>^((?![\w/\-]*partials)[\w/\-]*)/view/[\w/\-]*</from>
                 <to>$1/index.html</to>
         </rule>
-        <rule match-type="wildcard">
-                <from>/*/create/**</from>
+        <rule>
+                <from>^((?![\w/\-]*partials)[\w/\-]*)/create/[\w/]*</from>
                 <to>$1/index.html</to>
         </rule>
-        <rule match-type="wildcard">
-                <from>/*/results/**</from>
+        <rule>
+                <from>^((?![\w/\-]*partials)[\w/\-]*)/results/[\w/]*</from>
                 <to>$1/index.html</to>
         </rule>
-        <rule match-type="wildcard">
-                <from>/*/edit/**</from>
+        <rule>
+                <from>^((?![\w/\-]*partials)[\w/\-]*)/edit/[\w/]*</from>
                 <to>$1/index.html</to>
         </rule>
-        <rule match-type="wildcard">
-                <from>/*/model-*</from>
+        <rule>
+                <from>^((?![\w/\-]*partials)[\w/\-]*)/model-[\w/\-]*</from>
                 <to>$1/index.html</to>
         </rule>
 </urlrewrite>
