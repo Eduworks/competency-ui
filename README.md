@@ -25,7 +25,7 @@ server
 your web server  
     - **Note:** If you place the copied directory in a subdirectory of the ROOT
     directory, you will need to place the WEB-INF directory in the ROOT 
-    directory AND you will need to modify the `<base>` tag in index.html to 
+    directory **AND** you will need to modify the `<base>` tag in index.html to 
     match the subdirectory (e.g. if place the copied directory in 
     '/webapps/ROOT/competency/', you will need to change the value of the base
     tag to '/competency/').
