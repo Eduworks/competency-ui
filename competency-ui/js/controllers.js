@@ -130,7 +130,7 @@ controller('resultsController', ['$scope', '$routeParams', '$location', 'search'
 			
 			if(search.query != "" && search.query != undefined  && search.model != "" && search.model != undefined){
 				search.search2(search.query, appCache.context, search.model);
-			}else{
+			}else if($location.path().indexOf("results") != -1){
 				search.viewAll(appCache.context, search.model)
 			}
 		}
