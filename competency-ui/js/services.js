@@ -3131,8 +3131,10 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 				switch(evidenceData[key]){
 				case "URI":
 					obj.evidenceURI = evidenceData["value"];
+					break;
 				case "String":
-					obj.evidenceString = evidenceData["value"]
+					obj.evidenceString = evidenceData["value"];
+					break;
 				case "Filename":
 					if(evidenceData["valueFile"] == undefined){
 						
@@ -3206,8 +3208,10 @@ factory('validationItem', ['$http', '$q', 'dataObjectName', 'apiURL', 'session',
 				switch(evidenceData[key]){
 				case "URI":
 					obj.evidenceURI = evidenceData["value"];
+					break;
 				case "String":
-					obj.evidenceString = evidenceData["value"]
+					obj.evidenceString = evidenceData["value"];
+					break;
 				case "Filename":
 					if(evidenceData["valueFile"] == undefined){
 						
