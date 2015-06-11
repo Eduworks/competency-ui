@@ -40,10 +40,7 @@ controller('homeController', ['$scope', 'context', 'appCache', 'session', functi
 	$scope.context = context;
 	$scope.appCache = appCache;
 
-	if(session.currentUser.sessionId == undefined){
-		$scope.goLogin();
-		return;
-	}
+	session.checkSession($scope.goLogin);
 
 }]).
 

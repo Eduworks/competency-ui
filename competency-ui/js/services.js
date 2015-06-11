@@ -296,8 +296,8 @@ factory('search', ['$rootScope', '$q', 'appCache', 'context', 'modelItem', 'comp
 	}
 }]).
 
-factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'guestUser',
-                           function($rootScope, $q, $http, apiURL, dataObjectName, guestUserDefinition){
+factory('session', ['$rootScope', '$q', '$http', '$routeParams', 'apiURL', 'dataObjectName', 'guestUser',
+                           function($rootScope, $q, $http, $routeParams, apiURL, dataObjectName, guestUserDefinition){
 	var guestUser = {id: "", password: ""};
 	if(guestUserDefinition.exists){
 		guestUser.id = guestUserDefinition.userId;
@@ -389,11 +389,18 @@ factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'gu
 			var data = new FormData();
 			data.append(dataObjectName, JSON.stringify(obj));
 			
-			$http.post(apiURL + "session/validate", data,
+			$http.post(apiURL + "session/userInfo", data,
 			{
 				headers: {'Content-Type': undefined},
 				transformRequest: function(data){ return data; }
 			}).success(function(data, status, headers, config){
+				var user = new sessionUser(data, data["userId"]);
+				
+				for(var i in user){
+					curUser[i] = user[i];
+				}
+				curUser["sessionId"] = obj.sessionId;
+				
 				deferred.resolve(curUser);
 			}).error(function(data, status, headers, config){
 				console.log(data)
@@ -413,8 +420,21 @@ factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'gu
 		return deferred.promise;
 	}
 	
-	var validate = function(){
+	var checkSession = function(returnToLoginFunc){
+		var curUser = this.currentUser;
 		
+		if($routeParams.competencySessionId != undefined){
+			this.currentUser.sessionId = $routeParams.competencySessionId;
+			saveUser(this.currentUser);
+			this.loadUser().then(function(result){
+				saveUser(curUser);
+			}, function(error){
+				returnToLoginFunc()
+			});
+		}else if(this.currentUser.sessionId == undefined){
+			returnToLoginFunc()
+			return;
+		}
 	}
 	
 	return {
@@ -427,7 +447,9 @@ factory('session', ['$rootScope', '$q', '$http', 'apiURL', 'dataObjectName', 'gu
 		logout: logout,
 		
 		saveUser: saveUser,
-		loadUser: loadUser
+		loadUser: loadUser,
+		
+		checkSession: checkSession
 	}
 }]).
 
